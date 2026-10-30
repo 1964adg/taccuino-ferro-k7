@@ -6,7 +6,7 @@ import { h } from '../dom.js';
 import { t, get } from '../../config.js';
 import * as hist from '../../domain/history.js';
 import { formatDate, formatDuration, formatVolume, formatNumber } from '../../format.js';
-import { segmented } from '../components.js';
+import { segmented, helpTip } from '../components.js';
 import { barChart } from '../charts.js';
 import { subnav, statTile } from './progress-common.js';
 import * as historyView from './history.js';
@@ -44,7 +44,7 @@ function renderSummary(root, ctx) {
   // Periodo corrente
   const pct = cur.consistency == null ? '—' : `${Math.round(cur.consistency * 100)}%`;
   root.append(h('section', { class: 'card' },
-    h('div', { class: 'card-eyebrow' }, k === 'week' ? t('thisWeek') : t('thisMonth')),
+    h('div', { class: 'card-eyebrow' }, k === 'week' ? t('thisWeek') : t('thisMonth'), helpTip('summary', t('progressSummary'))),
     h('div', { class: 'stats-row cols-2' },
       statTile(String(cur.workouts), t('workouts')),
       statTile(pct, t('consistency'), cur.planned ? t('consistencyDetail', { done: cur.trainedDays, planned: cur.planned }) : null),

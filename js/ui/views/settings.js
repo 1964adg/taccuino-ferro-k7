@@ -12,6 +12,7 @@ import * as io from '../../io.js';
 import * as pwa from '../../pwa.js';
 import * as fb from '../../feedback.js';
 import * as notify from '../../notify.js';
+import * as push from '../../push.js';
 import { debounce } from '../../util.js';
 
 // Sezioni aperte (si ricordano finché l'app resta aperta)
@@ -59,6 +60,7 @@ export function render(root, ctx) {
   db.getMeta('persisted', false).then((p) => { storageNote.textContent = p ? t('storagePersisted') : t('storageNotPersisted'); });
 
   root.append(notifyCard(ctx));
+  root.append(pushCard(ctx));
 
   // Informazioni sull'app e aggiornamenti
   const versionEl = h('p', { class: 'muted small' }, get('app.name'));
@@ -131,6 +133,85 @@ function notifyCard(ctx) {
     h('summary', null, t('notifyPhoneSettings')),
     ...t('notifyPhoneSettingsText', { app }).split('\n').map((line) => h('p', { class: 'small' }, line))));
   return h('section', { class: 'card stack' }, parts);
+}
+
+// ---------- Server di notifica (push) ----------
+
+function pushCard(ctx) {
+  const card = h('section', { class: 'card stack' },
+    h('div', { class: 'card-title' }, t('pushSection')),
+    h('p', { class: 'muted small' }, t('pushIntro')));
+  if (!push.supported() || notify.permission() === 'unsupported') {
+    card.append(h('p', { class: 'small' }, notify.isStandalone() ? t('notifyStatusUnsupported') : t('notifyNeedsHome')));
+    return card;
+  }
+  if (!push.configured()) {
+    card.append(h('p', { class: 'small' }, t('pushOff')));
+    return card;
+  }
+  if (notify.permission() !== 'granted') {
+    card.append(h('p', { class: 'small' }, t('pushNeedsNotify')));
+    return card;
+  }
+
+  const serverEl = h('p', { class: 'small' }, t('pushChecking'));
+  const linkEl = h('p', { class: 'small' });
+  const lastEl = h('p', { class: 'muted small' });
+  const buttons = h('div', { class: 'stack' });
+  card.append(serverEl, linkEl, lastEl, buttons);
+
+  const last = push.getLastResult();
+  if (last) {
+    const time = formatTime(last.at);
+    lastEl.textContent = last.ok ? t('pushLastOk', { time }) : t('pushLastErr', { time, msg: last.error });
+  }
+
+  // Tutto il necessario si prepara subito: al tocco l'iscrizione parte senza attese (iOS)
+  let reg = null;
+  let key = null;
+  (async () => {
+    reg = await push.registration();
+    key = await push.savedPublicKey();
+    try {
+      key = await push.fetchPublicKey();
+      serverEl.textContent = t('pushServerOk');
+      serverEl.classList.remove('text-danger');
+    } catch (err) {
+      serverEl.textContent = t('pushServerErr', { msg: err.name === 'AbortError' ? t('pushTimeout') : err.message });
+      serverEl.classList.add('text-danger');
+    }
+    // Iscrizione fatta con chiavi diverse (chiavi del server cambiate): va rifatta
+    let sub = await push.getSubscription();
+    if (sub && key && !push.sameKey(sub, key)) sub = null;
+    linkEl.textContent = sub ? t('pushLinked') : t('pushNotLinked');
+    const delay = get('push.testDelaySec');
+    buttons.replaceChildren(...[
+      sub ? null : button(t('pushLink'), { variant: 'primary', iconName: 'check', className: 'btn-block', onClick: async () => {
+        if (!reg || !key) { toast(t('pushLinkErr', { msg: serverEl.textContent }), { type: 'danger', duration: 6000 }); return; }
+        try {
+          await push.subscribe(reg, key);
+          toast(t('pushLinkDone'), { type: 'success' });
+        } catch (err) {
+          toast(t('pushLinkErr', { msg: err.message }), { type: 'danger', duration: 7000 });
+        }
+        ctx.render({ keepScroll: true });
+      } }),
+      sub ? button(t('pushTest', { n: delay }), { variant: 'primary', iconName: 'clock', className: 'btn-block', onClick: async () => {
+        try {
+          await push.test(delay);
+          toast(t('pushTestHint', { n: delay }), { duration: 6000 });
+        } catch (err) {
+          toast(t('pushTestErr', { msg: err.name === 'AbortError' ? t('pushTimeout') : err.message }), { type: 'danger', duration: 7000 });
+        }
+      } }) : null,
+      sub ? button(t('pushUnlink'), { variant: 'danger-ghost', iconName: 'x', className: 'btn-block', onClick: async () => {
+        await safe(() => push.unsubscribe());
+        toast(t('pushUnlinked'));
+        ctx.render({ keepScroll: true });
+      } }) : null,
+    ].filter(Boolean));
+  })();
+  return card;
 }
 
 // ---------- Backup e dati ----------

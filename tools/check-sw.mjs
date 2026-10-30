@@ -17,7 +17,9 @@ function walk(dir) {
 }
 
 const sw = readFileSync(join(ROOT, 'service-worker.js'), 'utf8');
-const listed = [...sw.matchAll(/'\.\/([^']+)'/g)].map((m) => m[1]);
+// Solo le voci dell'elenco FILES (il resto del file contiene altri percorsi, es. la nota delle push)
+const block = (sw.match(/const FILES = \[([\s\S]*?)\];/) || [, ''])[1];
+const listed = [...block.matchAll(/'\.\/([^']*)'/g)].map((m) => m[1]);
 const actual = walk(ROOT);
 const missing = actual.filter((f) => !listed.includes(f));
 const extra = listed.filter((f) => f && !actual.includes(f) && f !== 'service-worker.js');

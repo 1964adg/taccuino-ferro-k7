@@ -136,10 +136,30 @@ iOS può cancellare i dati di un sito web che non viene usato per molto tempo. L
 
 ## Limiti di iOS da conoscere
 
-- **Schermo spento**: con lo schermo bloccato iOS sospende l'app, quindi il timer non può suonare. Durante l'allenamento l'app tiene lo schermo acceso (disattivabile nelle Impostazioni). Al ritorno il timer è comunque giusto, perché calcola il tempo dall'ora di inizio.
-- **Vibrazione**: iOS non la permette alle app web. C'è un'opzione sperimentale (iOS 18) che produce un leggero "tic".
+- **Schermo spento**: con lo schermo bloccato iOS sospende l'app, quindi il timer non può suonare. Durante l'allenamento l'app tiene lo schermo acceso (disattivabile nelle Impostazioni). Al ritorno il timer è comunque giusto, perché calcola il tempo dall'ora di inizio. Per avere l'avviso anche a schermo bloccato serve il server di notifica (sezione qui sotto).
+- **Vibrazione**: iOS non la permette alle app web. Le **notifiche** però fanno vibrare il telefono, secondo le impostazioni dell'iPhone: per questo l'app può mandare una notifica a fine recupero (Impostazioni → "Notifiche e vibrazione"). Con l'app aperta la notifica parte dal telefono stesso, insieme al bip; a schermo bloccato serve il server.
 - **Suono**: nelle Impostazioni scegli se si mescola alla musica (e rispetta il tasto silenzioso) o se suona anche col silenzioso.
 - **Nome sotto l'icona**: si sceglie quando aggiungi l'app alla Home. Cambiarlo nelle Impostazioni modifica solo il titolo dentro l'app.
+
+## Notifiche e vibrazione a fine recupero
+
+1. Apri l'app **dall'icona sulla Home** (in Safari le notifiche non esistono).
+2. **Prima esporta un backup**: se rifiuti il permesso per sbaglio, per richiederlo bisogna togliere e rimettere l'icona, e questo cancella i dati.
+3. Impostazioni → riquadro **"Notifiche e vibrazione"** → **Attiva le notifiche** → **Consenti**.
+4. **Prova notifica e vibrazione**: deve comparire un riquadro in alto e il telefono deve vibrare. Se non vibra, apri "Impostazioni dell'iPhone per la vibrazione" nello stesso riquadro.
+5. Se senti due suoni a fine recupero (bip + notifica): Impostazioni → "Notifiche di fine recupero" → "Con la notifica, niente bip finale dell'app".
+
+Senza server la notifica arriva **solo con l'app aperta**. Lampeggio dello schermo: Impostazioni → Timer di recupero.
+
+## Notifiche a schermo bloccato (facoltativo, server Cloudflare)
+
+Per ricevere l'avviso (con vibrazione) anche con lo schermo bloccato o mentre usi un'altra app, serve un piccolo server tuo, gratuito, su **Cloudflare Workers**. Si prepara una volta sola **dal sito di Cloudflare, senza terminale**: il codice da incollare è in [`server/gaia-gym-push.js`](server/gaia-gym-push.js) e le istruzioni passo per passo in [`server/ISTRUZIONI.md`](server/ISTRUZIONI.md).
+
+In breve:
+- al tocco di "Fatto" l'app dice al server "avvisami tra N secondi"; "+15 s", "−15 s" e "Salta" spostano o annullano la sveglia;
+- alla scadenza il server manda una notifica push al telefono;
+- al server arrivano **solo** l'indirizzo push del telefono e la durata del recupero: nessun dato di allenamento. Il testo della notifica lo compone il telefono;
+- se il server non risponde o manca la rete, il timer del telefono funziona come sempre, senza messaggi di errore invasivi.
 
 ## Struttura del codice
 
@@ -159,9 +179,14 @@ js/
   pwa.js               service worker e aggiornamenti
   util.js, format.js   utilità, unità di misura, date
   timer.js             timer di recupero (basato sull'ora di fine)
-  feedback.js          suono, vibrazione, schermo acceso
+  feedback.js          suono, vibrazione (Android), lampeggio, schermo acceso
+  notify.js            notifiche locali di fine recupero
+  push.js              collegamento al server di notifica (push a schermo bloccato)
   domain/              modello dati, schede, allenamento, statistiche, cronologia, importazione da testo
   ui/                  componenti, editor, grafici, riordino, schermate
+server/                server di notifica da incollare su Cloudflare (non fa parte dell'app)
+  gaia-gym-push.js     codice del Worker
+  ISTRUZIONI.md        come prepararlo, passo per passo
 tools/                 strumenti per chi sviluppa (non servono all'app)
   check-sw.mjs         controlla l'elenco dei file del service worker
   render-icons.mjs     rigenera le icone PNG da icons/icon.svg

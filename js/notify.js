@@ -78,12 +78,20 @@ export const restNotifyActive = () => !!get('notify.local') && permission() === 
  * Fine recupero. late = secondi di ritardo con cui l'app se ne accorge
  * (es. tornando dal background): oltre la soglia la notifica non serve più.
  */
-export function restEnded({ exercise, setNumber, allDone }, late = 0) {
+export function restEnded(info, late = 0) {
   if (!restNotifyActive()) return false;
   if (late > get('notify.maxLateSec')) return false;
-  const body = allDone ? t('notifyBodyAllDone') : t('notifyBody', { exercise: exercise || '', n: setNumber || '' });
-  show(t('notifyTitle'), body);
+  const { title, body } = restText(info);
+  show(title, body);
   return true;
+}
+
+/** Titolo e testo della notifica di fine recupero (usati anche per la push del server). */
+export function restText({ exercise, setNumber, allDone }) {
+  return {
+    title: t('notifyTitle'),
+    body: allDone ? t('notifyBodyAllDone') : t('notifyBody', { exercise: exercise || '', n: setNumber || '' }),
+  };
 }
 
 /** Notifica di prova, subito o dopo qualche secondo. */

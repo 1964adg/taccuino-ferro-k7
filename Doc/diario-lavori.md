@@ -51,7 +51,7 @@ Tutte le proposte accettate, più queste scelte esplicite:
 3. ✅ Cronologia e progressi: elenco modificabile, grafici SVG, record, riepiloghi, filtri, peso corporeo.
 4. ✅ Esportazione e importazione: JSON (Web Share o download), unione o sostituzione, backup automatico, CSV, promemoria di backup.
 5. ✅ Rifinitura grafica e PWA: manifest, service worker offline, icone, README completo per GitHub Pages.
-6. ⏳ Vibrazione e notifiche di fine recupero: A lampeggio ✅, B notifica locale ✅ (da provare sull'iPhone), C push con Cloudflare (Queues + D1), con il codice in `server/`.
+6. ⏳ Vibrazione e notifiche di fine recupero: A lampeggio ✅, B notifica locale ✅ (provata sull'iPhone), C push con Cloudflare (Queues + D1) ✅ nel codice, da preparare su Cloudflare e provare sull'iPhone.
 
 ## Tappa 1 — Nucleo (completata)
 
@@ -292,3 +292,41 @@ L'app è completa e pubblicabile. Resta solo la **tappa 6 facoltativa** (notific
   - chiamate verificate: prova ("Prova di Gaia Gym"), fine recupero ("Recupero finito | Stacco rumeno · serie 2"), nessuna notifica con 250 s di ritardo simulato;
   - Chrome headless non visualizza le notifiche.
 - **Da provare sull'iPhone**: se la notifica compare con l'app in primo piano e se vibra (suoneria, silenzioso, con musica). Dal risultato dipende il valore predefinito di "Notifica anche con l'app aperta" nella parte C.
+- **Risultato sull'iPhone (1.0.6)**: app aperta in primo piano, suoneria attiva → la notifica **compare, vibra e suona**. Quindi con l'app aperta la vibrazione arriva insieme al bip. Schermo bloccato con "Prova tra N secondi" → **non arriva nulla**, come previsto (JavaScript sospeso): per lo schermo bloccato serve la push dal server. Ancora da provare: silenzioso, musica.
+
+### C — Server di notifica Cloudflare (versione 1.0.7)
+
+- **`server/gaia-gym-push.js`**: un unico file da incollare nel pannello. Solo Web Crypto, nessun pacchetto.
+  - **Collegamenti**: `DB` (D1; la tabella `telefoni` si crea da sola) e `CODA` (Queues: lo stesso Worker è produttore e consumatore, con lotto 1 e attesa 0).
+  - **Variabili**: `ORIGINE`, `SEGRETO`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` facoltativa.
+  - **Pagine di servizio**: `/` controlla la configurazione (✓/✗, senza mai mostrare i segreti); `/genera-chiavi` crea le chiavi VAPID e una proposta di `SEGRETO`, senza salvarle, e solo se le chiavi non sono già impostate. Non serve quindi uno strumento in `tools/`.
+  - **API** (`/api/chiave`, `sveglia`, `annulla`, `prova`, `scollega`): POST con JSON in `text/plain` (niente richiesta preliminare CORS), segreto confrontato a tempo costante, origine controllata, al massimo 10 telefoni e 60 richieste al minuto per telefono, solo servizi push ufficiali.
+  - **Consegna**: la coda arrotonda il ritardo per difetto e il consumatore aspetta l'istante esatto (massimo 15 s). Consegna solo se l'id della sveglia combacia ancora. Push vuota con VAPID ES256 (RFC 8292), `TTL` 60 e `Urgency: high`. Con 404 o 410 il telefono viene dimenticato; con un errore 5xx si riprova una volta.
+- **App**:
+  - `js/push.js` gestisce iscrizione, sveglie e nota per il service worker;
+  - il service worker gestisce l'evento `push` e mostra la nota;
+  - riquadro "Server di notifica (schermo bloccato)" in Impostazioni: stato del server, collegamento, prova tra 10 s, scollegamento, esito dell'ultimo invio. Se le chiavi del server cambiano, il telefono va ricollegato e il riquadro lo segnala;
+  - nuove impostazioni `push.cancelBeforeEndSec` (5), `push.timeoutMs` (5000), `push.testDelaySec` (10).
+- **Doppio avviso**: con l'app in primo piano e la notifica locale attiva, la sveglia del server si annulla negli ultimi 5 s. Se l'app passa in background, si riprogramma.
+- **`tools/check-sw.mjs`**: ora legge solo l'elenco `FILES` (prima prendeva anche gli altri percorsi del service worker).
+- **Documentazione**: `server/ISTRUZIONI.md` (passo per passo, con tabella dei problemi) e due nuove sezioni del README ("Notifiche e vibrazione a fine recupero" e "Notifiche a schermo bloccato").
+- **Prove fatte**:
+  - **Worker in Node** (D1 con `node:sqlite`, coda e servizio push simulati): chiavi generate; pagina di stato; segreto errato (401), origine diversa (403), servizio push sconosciuto (400); sostituzione della sveglia (consegnata solo l'ultima, all'istante esatto); "Salta" (nessuna push); prova; 410 (telefono dimenticato); limite di frequenza (429); **firma ES256 verificata** con la chiave pubblica.
+  - **App in Chrome headless** con il Worker in locale e `PushManager` simulato: stati del riquadro (non configurato, chiave errata, raggiungibile, collegato); prova dal server consegnata dopo 10 s; "Fatto" → sveglia 150 s, "+15 s" → 164 s, "Salta" → annulla; con l'app in primo piano la push viene annullata negli ultimi secondi e non arriva; testo della nota corretto ("Recupero finito | Stacco rumeno · serie 2"); push vuota consegnata al service worker con CDP senza errori.
+- **Da verificare**:
+  - sul pannello di Cloudflare, i nomi esatti dei pulsanti per Queues (punti 7–8 delle istruzioni);
+  - sull'iPhone: arrivo e vibrazione a schermo bloccato, in un'altra app, con la musica e in silenzioso.
+
+## Versione 1.0.8 — Aiuto contestuale
+
+- **Richiesta dell'utente**: spiegare le voci poco ovvie (partita dalla domanda "cosa significa Archiviato?"). Scelta: un piccolo "?" che apre un pannello dal basso con una spiegazione breve.
+- **Componenti** (`components.js`): `showHelp(key, title)`, `helpTip(key, title)`, `withHelp(text, key)`, opzione `help` di `stepper()`. Icona `help` in `dom.js`.
+- **Testi**: `labels.help_*` in `config-default.js`, uno per paragrafo, modificabili da "Testi dell'interfaccia". Verificati nel codice (riscaldamento escluso da record e volume salvo impostazione, ordine dei recuperi, precompilazione).
+- **Dove**:
+  - **Modifica esercizio**: gruppo muscolare, tipo di misurazione, icona, recupero dell'esercizio, Archiviato;
+  - **Voce del giorno**: serie di riscaldamento, ripetizioni min/max, peso previsto o zavorra, recupero in questa scheda, serie personalizzate;
+  - **Schede**: titolo della pagina (scheda attiva, rotazione, archivio, libreria) e giorni della settimana;
+  - **Allenamento**: "Ultima volta / Prima volta" e, nel menu "Altro", "Cosa fanno i tasti";
+  - **Progressi**: riepilogo (allenamenti, costanza, volume, tempo), metriche del grafico (1RM, Epley/Brzycki) e record personali.
+- **Grafica**: nelle griglie a due colonne i selettori si allineano in basso, così un'etichetta che va a capo per il "?" non li sposta.
+- **Prova**: tutti i "?" presenti e apribili nelle cinque schermate; nessun errore in console.

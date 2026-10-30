@@ -52,6 +52,32 @@ export function button(label, { variant = 'secondary', iconName, onClick, classN
   }, iconName ? icon(iconName) : null, label ? h('span', null, label) : null);
 }
 
+// ---- Aiuto contestuale ----
+// Il testo sta in config-default.js come etichetta "help_<chiave>" (modificabile da
+// "Testi dell'interfaccia"); ogni riga diventa un paragrafo.
+
+export function showHelp(key, title) {
+  const paragraphs = t('help_' + key).split('\n').map((p) => p.trim()).filter(Boolean);
+  const s = openSheet({
+    title,
+    content: h('div', { class: 'stack help-text' }, paragraphs.map((p) => h('p', null, p))),
+    actions: [button(t('close'), { variant: 'primary', onClick: () => s.close() })],
+  });
+}
+
+/** Piccolo tasto "?" che apre l'aiuto. */
+export function helpTip(key, title) {
+  return h('button', {
+    type: 'button', class: 'help-tip', 'aria-label': t('helpOpen', { name: title }),
+    onClick: (ev) => { ev.preventDefault(); ev.stopPropagation(); showHelp(key, title); },
+  }, icon('help'));
+}
+
+/** Testo seguito dal suo "?". */
+export function withHelp(text, key) {
+  return h('span', { class: 'with-help' }, h('span', null, text), helpTip(key, text));
+}
+
 /** Conferma sì/no. Restituisce una Promise<boolean>. */
 export function confirmDialog(message, { okLabel = t('confirm'), cancelLabel = t('cancel'), danger = false } = {}) {
   return new Promise((resolve) => {
@@ -173,7 +199,8 @@ export async function safe(fn) {
 
 /**
  * @param {object} o
- *   label, value, step, min, max, decimals, unit, format(v), onChange(v), editTitle
+ *   label, value, step, min, max, decimals, unit, format(v), onChange(v), editTitle,
+ *   help (chiave dell'aiuto contestuale, facoltativa)
  */
 export function stepper(o) {
   let value = o.value;
@@ -211,7 +238,7 @@ export function stepper(o) {
   const plus = mk(1, 'plus');
 
   const el = h('div', { class: 'stepper' },
-    h('div', { class: 'stepper-label' }, o.label),
+    h('div', { class: 'stepper-label' }, o.label, o.help ? helpTip(o.help, o.label) : null),
     h('div', { class: 'stepper-row' }, minus, display, plus),
   );
   render();

@@ -14,7 +14,7 @@ import {
   exerciseIcon, resolveIcon, autoPictogram, pictogramLabel, PICTOGRAM_KEYS, imageFileToIcon,
 } from './pictograms.js';
 import {
-  openSheet, button, stepper, toggle, toast, confirmDialog, numberDialog, safe,
+  openSheet, button, stepper, toggle, toast, confirmDialog, numberDialog, safe, helpTip, withHelp,
 } from './components.js';
 
 // ---- Selettori per i valori di una serie ----
@@ -201,7 +201,7 @@ export function editExercise(ex, preset = {}) {
     notes.value = draft.notes || '';
 
     let archived = !!draft.archived;
-    const archivedRow = ex ? h('div', { class: 'setting-row' }, h('span', null, t('archivedLabel')),
+    const archivedRow = ex ? h('div', { class: 'setting-row' }, withHelp(t('archivedLabel'), 'archived'),
       toggle(archived, (v) => { archived = v; }, t('archivedLabel'))) : null;
 
     const actions = [];
@@ -237,10 +237,10 @@ export function editExercise(ex, preset = {}) {
       title: ex ? t('editExercise') : t('newExercise'),
       content: h('div', { class: 'stack' },
         field(t('exerciseName'), name),
-        field(t('muscleGroup'), h('div', null, group, groupChips)),
-        field(t('measureType'), measure),
-        field(t('exerciseIconLabel'), iconField),
-        field(t('exerciseRest'), restField),
+        field(t('muscleGroup'), h('div', null, group, groupChips), 'muscleGroup'),
+        field(t('measureType'), measure, 'measure'),
+        field(t('exerciseIconLabel'), iconField, 'icon'),
+        field(t('exerciseRest'), restField, 'exerciseRest'),
         notes,
         archivedRow,
         ex ? h('p', { class: 'muted small' }, t('libraryHint')) : null,
@@ -293,8 +293,8 @@ export function pickIcon(ex) {
   });
 }
 
-function field(label, control) {
-  return h('label', { class: 'field' }, h('span', { class: 'field-label' }, label), control);
+function field(label, control, help) {
+  return h('label', { class: 'field' }, h('span', { class: 'field-label' }, label, help ? helpTip(help, label) : null), control);
 }
 
 /** Recupero: "usa il predefinito" oppure un valore proprio. */
@@ -355,13 +355,13 @@ export function editItem(program, day, item) {
         draft.warmupSets = Math.min(draft.warmupSets || 0, v);
         drawCustom();
       } }).el);
-      grid.append(stepper({ label: t('warmupSets'), value: draft.warmupSets || 0, step: 1, min: 0, max: 10, decimals: 0, onChange: (v) => {
+      grid.append(stepper({ label: t('warmupSets'), help: 'warmup', value: draft.warmupSets || 0, step: 1, min: 0, max: 10, decimals: 0, onChange: (v) => {
         draft.warmupSets = Math.min(v, draft.sets);
         drawCustom();
       } }).el);
       if (m.fields.includes('reps')) {
         let maxSt;
-        const minSt = stepper({ label: t('repsMin'), value: draft.repsMin ?? 0, step: get('units.repsStep'), min: 0, max: 200, decimals: 0, onChange: (v) => {
+        const minSt = stepper({ label: t('repsMin'), help: 'repsRange', value: draft.repsMin ?? 0, step: get('units.repsStep'), min: 0, max: 200, decimals: 0, onChange: (v) => {
           draft.repsMin = v;
           if ((draft.repsMax ?? 0) < v) { draft.repsMax = v; maxSt.setValue(v); }
           drawCustom();
@@ -376,7 +376,7 @@ export function editItem(program, day, item) {
       parts.push(grid);
       if (m.fields.includes('weight')) {
         parts.push(stepper({
-          label: `${m.bodyweight ? t('addedWeight') : t('planWeight')} (${weightUnit()})`,
+          label: `${m.bodyweight ? t('addedWeight') : t('planWeight')} (${weightUnit()})`, help: 'planWeight',
           value: kgToDisplay(draft.weightKg || 0), step: get('units.weightStep'), min: 0, decimals: 2,
           onChange: (v) => { draft.weightKg = v > 0 ? displayToKg(v) : null; drawCustom(); },
         }).el);
@@ -397,7 +397,7 @@ export function editItem(program, day, item) {
       }
 
       // Recupero
-      parts.push(field(t('itemRest'), restControl(draft.restSec, restFor({ restSec: null }, ex), (v) => { draft.restSec = v; })));
+      parts.push(field(t('itemRest'), restControl(draft.restSec, restFor({ restSec: null }, ex), (v) => { draft.restSec = v; }), 'itemRest'));
 
       // Serie personalizzate
       const customWrap = h('div', { class: 'stack' });
@@ -410,7 +410,7 @@ export function editItem(program, day, item) {
         for (let i = 0; i < draft.sets; i++) customBody.append(customRow(i, m));
       };
       customWrap.append(
-        h('div', { class: 'setting-row' }, h('span', null, t('customizeSets')),
+        h('div', { class: 'setting-row' }, withHelp(t('customizeSets'), 'customSets'),
           toggle(customOn, (v) => { customOn = v; if (!v) draft.custom = []; drawCustom(); }, t('customizeSets'))),
         customBody,
       );

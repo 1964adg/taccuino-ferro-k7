@@ -14,6 +14,7 @@ Lingua: tutto in italiano (interfaccia, commenti, documentazione, risposte all'u
 - **Accesso ai dati**: `js/db.js` è l'unico modulo che usa IndexedDB. Il resto passa da `js/domain/repo.js`, che tiene una copia in memoria.
 - **Testo dinamico**: sempre come `textContent`, tramite `h()` in `js/ui/dom.js`. Mai `innerHTML` con dati dell'utente.
 - **Errori**: ogni operazione asincrona dall'interfaccia va dentro `safe(() => ...)` (`js/ui/components.js`), che mostra un messaggio comprensibile.
+- **Aiuto contestuale**: per spiegare una voce poco ovvia si usa `helpTip('chiave', titolo)`, `withHelp(testo, 'chiave')`, l'opzione `help` di `stepper()` o il terzo argomento di `field()` in `editors.js`. Il testo va in `labels.help_<chiave>` (una riga per paragrafo) e deve descrivere il comportamento reale: va verificato nel codice.
 
 ## Architettura
 
@@ -33,6 +34,10 @@ js/io.js                  backup JSON (prepare + share/download), validazione, u
 js/timer.js               timer di recupero basato su endAt (Date.now), non sui tick
 js/feedback.js            suoni (Web Audio), vibrazione (solo Android), lampeggio a fine recupero, Wake Lock
 js/notify.js              notifiche locali di fine recupero (permesso, prova, testo), senza server
+js/push.js                server di notifica: iscrizione push, sveglie (sveglia/annulla/prova),
+                          "nota" con il testo per il service worker (Cache API gg-push-note)
+server/gaia-gym-push.js   Cloudflare Worker da incollare nel pannello (Queues + D1, VAPID con Web Crypto)
+server/ISTRUZIONI.md      preparazione del server passo per passo, per chi non è tecnico
 js/domain/model.js        costruttori dei record, MEASURES, expandTargets, restFor
 js/domain/repo.js         copia in memoria + salvataggio; uso degli esercizi
 js/domain/workout.js      scelta del giorno, avvio, precompilazione, serie, chiusura
@@ -84,6 +89,15 @@ js/ui/views/*.js          home, workout, programs (+ library, import),
 - **Schermo bloccato**: niente notifiche locali programmate. Il comportamento predefinito è tenere lo schermo acceso (Wake Lock). La notifica via server Cloudflare è un'opzione prevista per la tappa finale (`push.*` nella configurazione).
 - **Notifiche locali** (`js/notify.js`): esistono solo nell'app aperta dalla Home (in una scheda di Safari `Notification` non esiste). Il permesso si chiede con un tocco, senza `await` prima della richiesta. Partono solo mentre il JavaScript gira, quindi con l'app in primo piano. In background o a schermo bloccato serve la push dal server. Se il permesso viene rifiutato, per richiederlo di nuovo bisogna reinstallare l'icona, e reinstallarla cancella i dati.
 - **Vibrazione tramite notifica**: la notifica non può chiedere di vibrare. Vibra o no secondo le impostazioni dell'iPhone (Notifiche → app, Suoni e feedback aptico, Full immersion). Chrome headless non mostra le notifiche: nelle prove si controllano le chiamate a `showNotification`.
-- **Cloudflare dal solo pannello web**: i Durable Object nuovi richiedono una migrazione, che si fa solo con `wrangler`. Per la tappa C si usano Queues (con `delaySeconds`) + D1, che si creano dal pannello.
+- **Cloudflare dal solo pannello web**: i Durable Object nuovi richiedono una migrazione, che si fa solo con `wrangler`. Per questo si usano Queues (con `delaySeconds`) + D1. Worker, D1 e segreti dal pannello sono documentati; per Queues la documentazione mostra solo `wrangler`, quindi i nomi dei pulsanti in `server/ISTRUZIONI.md` (punti 7–8) vanno confermati sul pannello vero.
+
+## Notifiche push (server)
+
+- **Push vuota**: il server conosce solo l'indirizzo push e il ritardo. Il testo lo prepara l'app (`push.saveNote`) nella cache `gg-push-note`, che non inizia con `gaia-gym-` e quindi non viene cancellata all'attivazione del service worker. Su iOS ogni push **deve** mostrare una notifica, altrimenti Safari revoca l'iscrizione.
+- **Richieste al server**: POST con JSON in `text/plain` e il segreto nel corpo, così il browser non fa la richiesta preliminare CORS. L'origine si confronta con `ORIGINE`.
+- **Sveglie**: "Fatto" e "±15 s" inviano `sveglia` con un nuovo `idSveglia`, che sostituisce il precedente (la coda consegna solo se l'id combacia ancora in D1). "Salta" e la fine dell'allenamento inviano `annulla`. La coda arrotonda per difetto; il consumatore aspetta il resto.
+- **Doppio avviso**: con l'app in primo piano e la notifica locale attiva, negli ultimi `push.cancelBeforeEndSec` secondi la sveglia del server si annulla. Se l'app passa in background prima della fine, si riprogramma (`keepalive`).
+- **Errori**: mai avvisi invasivi. L'esito dell'ultimo invio si vede nel riquadro "Server di notifica".
+- **Prove**: il Worker si prova in Node simulando D1 (`node:sqlite`), la coda e il servizio push. Chrome headless non ha un servizio push vero: si simula `PushManager` e si consegna una push con CDP (`ServiceWorker.deliverPushMessage`).
 - **Dati separati**: i dati di Safari e quelli dell'app installata sulla Home non sono condivisi.
 - **Nome sotto l'icona**: si fissa all'installazione e il manifest è statico.

@@ -4,7 +4,7 @@
 // ===== VERSIONE DELL'APP: aumentarla a OGNI pubblicazione =====
 // Safari capisce che c'è un aggiornamento solo se QUESTO file cambia:
 // per questo il numero di versione sta qui e non in un file separato.
-const APP_VERSION = '1.0.6';
+const APP_VERSION = '1.0.8';
 // ===============================================================
 // Se si aggiungono o tolgono file dell'app, aggiornare anche l'elenco FILES qui sotto
 // (controllo: node tools/check-sw.mjs).
@@ -30,6 +30,7 @@ const FILES = [
   './js/io.js',
   './js/main.js',
   './js/notify.js',
+  './js/push.js',
   './js/pwa.js',
   './js/settings-schema.js',
   './js/timer.js',
@@ -81,6 +82,27 @@ self.addEventListener('message', (event) => {
   if (event.data === 'skipWaiting') self.skipWaiting();
   // La pagina chiede la versione installata (risposta sul canale ricevuto)
   if (event.data === 'getVersion' && event.ports && event.ports[0]) event.ports[0].postMessage({ version: APP_VERSION });
+});
+
+// Push dal server di notifica: arriva VUOTA (il server non conosce i dati di allenamento).
+// Il testo è la "nota" preparata dall'app in js/push.js. Su iOS ogni push deve
+// mostrare una notifica, altrimenti Safari può revocare l'iscrizione.
+self.addEventListener('push', (event) => {
+  event.waitUntil((async () => {
+    let note = null;
+    try {
+      const res = await caches.match('./__push-note.json', { cacheName: 'gg-push-note' });
+      if (res) note = await res.json();
+    } catch { /* nota assente: testo generico */ }
+    await self.registration.showNotification((note && note.title) || 'Gaia Gym', {
+      body: (note && note.body) || '',
+      tag: 'gaia-gym-rest',
+      renotify: true,
+      icon: './icons/icon-192.png',
+      badge: './icons/icon-192.png',
+      data: { url: './#/workout' },
+    });
+  })());
 });
 
 // Tocco sulla notifica: riporta all'app già aperta, altrimenti la apre sull'allenamento

@@ -203,10 +203,15 @@ export const DEFAULTS = {
     testDelaySec: 10,        // ritardo della notifica di prova "tra qualche secondo"
   },
 
+  // Server di notifica (Cloudflare Worker, codice in server/): push a schermo bloccato
   push: {
     enabled: false,
     serverUrl: '',
     secret: '',
+    timeoutMs: 5000,         // attesa massima di una risposta del server
+    cancelBeforeEndSec: 5,   // con l'app in primo piano e la notifica locale attiva, si annulla la push
+                             // negli ultimi N secondi (evita il doppio avviso; 0 = mai)
+    testDelaySec: 10,        // ritardo della prova dal server
   },
 
   // Testi dell'interfaccia. {n}, {name}, ecc. sono segnaposto.
@@ -535,6 +540,27 @@ export const DEFAULTS = {
     picto_stretch: 'Stretching',
     picto_dumbbell: 'Generico',
 
+    // Aiuto contestuale (tasto "?"). Ogni riga è un paragrafo.
+    helpOpen: 'Aiuto: {name}',
+    helpWorkoutMenu: 'Cosa fanno i tasti',
+    help_measure: 'Decide quali valori registri per ogni serie.\nPeso e ripetizioni: il caso classico (panca, squat…).\nSolo ripetizioni: senza peso (es. crunch).\nCorpo libero + zavorra: le ripetizioni più un eventuale peso aggiunto (es. trazioni, dip). Se registri il peso corporeo, può entrare nel volume.\nTempo: una durata (es. plank).\nDistanza e tempo: per il cardio (es. corsa, bici).',
+    help_muscleGroup: 'Facoltativo. Serve a raggruppare gli esercizi nella libreria e a scegliere in automatico l\'icona quando il nome non basta.',
+    help_icon: 'L\'immagine che compare accanto all\'esercizio.\nAutomatica: scelta dal nome (o dal gruppo muscolare).\nPuoi scegliere un altro disegno, una foto dalla galleria oppure nessuna icona.',
+    help_exerciseRest: 'Il recupero di questo esercizio in tutte le schede.\nSe in una scheda imposti un recupero diverso per questo esercizio, vale quello della scheda.\nCon "Usa il predefinito" vale quello di Impostazioni → Timer di recupero.',
+    help_archived: 'Per un esercizio che non usi più ma che non vuoi perdere.\nSparisce dalle liste di scelta e nella libreria finisce in fondo, in "Esercizi archiviati".\nLo storico resta intatto: allenamenti passati, grafici e record.\nSe è ancora in un giorno di una scheda, ci resta con l\'etichetta "Archiviato".\nUn esercizio con uno storico non si può eliminare, ma si può archiviare. Puoi sempre toglierlo dall\'archivio.',
+    help_warmup: 'Le prime serie dell\'esercizio, segnate con "R", fatte con poco peso per scaldarsi.\nNon contano per i record e non entrano nel volume (a meno che tu non lo attivi in Impostazioni → Statistiche).\nDurante l\'allenamento puoi segnare o togliere il riscaldamento su ogni serie con il tasto "Riscaldamento".',
+    help_repsRange: 'Le ripetizioni previste. Con minimo e massimo diversi indichi un intervallo, per esempio 8–10; con lo stesso valore, un numero fisso.\nDurante l\'allenamento viene proposto il minimo o il massimo, come scelto in Impostazioni → Allenamento.',
+    help_planWeight: 'Il peso previsto dalla scheda.\nDurante l\'allenamento il peso proposto segue Impostazioni → Allenamento → Precompilazione: dall\'ultima volta (predefinito), dal massimo, oppure da questo valore. Se non hai ancora uno storico, si usa questo.\nPer gli esercizi a corpo libero è la zavorra: 0 vuol dire senza peso aggiunto.',
+    help_itemRest: 'Il recupero di questo esercizio solo in questo giorno della scheda.\nCon "Usa il predefinito" vale il recupero dell\'esercizio (Libreria) e, se manca anche quello, quello di Impostazioni → Timer di recupero.',
+    help_customSets: 'Per fare serie diverse tra loro, per esempio una piramide (12, 10, 8 ripetizioni) o un peso che sale.\nTocca un valore per cambiarlo solo in quella serie; tieni premuto per tornare al valore comune.\nI valori in grassetto sono quelli personalizzati.',
+    help_programs: 'Una scheda è un programma fatto di giorni di allenamento, ciascuno con i suoi esercizi.\nUna sola scheda alla volta è attiva: la Home propone i suoi giorni. Se un giorno è associato al giorno della settimana di oggi lo propone, altrimenti propone quello che segue l\'ultimo svolto (rotazione).\nArchiviare nasconde una scheda senza cancellarla. Eliminarla non cancella lo storico degli allenamenti.\nLa libreria contiene gli esercizi comuni a tutte le schede: rinominarne uno aggiorna anche lo storico.',
+    help_weekdays: 'I giorni della settimana in cui la Home propone questo giorno di allenamento.\nSe non ne scegli nessuno, il giorno viene proposto solo a rotazione, dopo quello svolto per ultimo.',
+    help_lastTime: 'Le serie fatte l\'ultima volta con questo esercizio, per sapere da dove ripartire.\nLa riga con la coppa è il tuo record personale.\nQuando una serie supera un record compare "Nuovo record". Le serie di riscaldamento non contano.',
+    help_workoutMenu: 'Fatto: registra la serie con i valori mostrati, poi parte il recupero.\nAnnulla ultima: cancella l\'ultima serie registrata.\nTocca una serie già fatta per correggerla o eliminarla.\nRiscaldamento: segna la serie corrente come riscaldamento.\nNel menu "Altro": Serie extra aggiunge una serie in più; Salta esercizio lo mette da parte (puoi riprenderlo); Aggiungi esercizio inserisce un esercizio fuori scheda, anche nuovo; Vai all\'esercizio salta a un altro esercizio.\nCon le frecce in basso, o scorrendo di lato, passi all\'esercizio precedente o successivo.\nTermina (in alto) chiude l\'allenamento con il riepilogo.',
+    help_summary: 'Allenamenti: quanti ne hai fatti nel periodo.\nCostanza: i giorni in cui ti sei allenato rispetto ai giorni di allenamento previsti fino a oggi (Impostazioni → Calendario), al massimo 100%.\nVolume totale: la somma di peso × ripetizioni di tutte le serie. Il riscaldamento è escluso (salvo impostazione); negli esercizi a corpo libero può contare il peso corporeo.\nTempo totale: la durata degli allenamenti.',
+    help_metrics: 'Ogni punto del grafico è un allenamento.\nMassimale stimato (1RM): il peso che potresti sollevare per una sola ripetizione, calcolato da peso e ripetizioni della serie migliore (formula di Epley, o Brzycki in Impostazioni → Statistiche). Utile per confrontare serie con ripetizioni diverse.\nPeso massimo: il peso più alto usato.\nVolume: peso × ripetizioni di tutte le serie.\nRipetizioni massime e totali, tempo e distanza: a seconda del tipo di esercizio.',
+    help_records: 'I tuoi migliori risultati di sempre con questo esercizio, con la data.\nSe correggi o elimini un allenamento nella cronologia, i record vengono ricalcolati.',
+
     // App, aggiornamenti, accessibilità
     aboutApp: 'Informazioni',
     appVersion: 'Versione {v}',
@@ -568,6 +594,27 @@ export const DEFAULTS = {
     notifyTestLaterHint: 'Tra {n} secondi arriva una notifica di prova. Tieni l\'app aperta: senza server, con lo schermo bloccato o in un\'altra app non può arrivare.',
     notifyTestSent: 'Notifica inviata. Se non compare, iOS non mostra le notifiche con l\'app aperta.',
     notifyTestFailed: 'La notifica non è partita. Controlla il permesso.',
+    pushSection: 'Server di notifica (schermo bloccato)',
+    pushIntro: 'Con lo schermo bloccato o in un\'altra app, l\'avviso arriva dal tuo server Cloudflare. Indirizzo e chiave segreta si inseriscono in "Notifiche a schermo spento", più sotto.',
+    pushOff: 'Server non attivo. Attivalo in "Notifiche a schermo spento" e inserisci indirizzo e chiave segreta.',
+    pushNeedsNotify: 'Prima attiva le notifiche qui sopra.',
+    pushChecking: 'Controllo del server…',
+    pushServerOk: 'Server raggiungibile, chiave segreta corretta.',
+    pushServerErr: 'Server non raggiungibile: {msg}',
+    pushLinked: 'Telefono collegato.',
+    pushNotLinked: 'Telefono non ancora collegato.',
+    pushLink: 'Collega questo telefono',
+    pushLinkDone: 'Telefono collegato al server',
+    pushLinkErr: 'Collegamento non riuscito: {msg}',
+    pushUnlink: 'Scollega questo telefono',
+    pushUnlinked: 'Telefono scollegato',
+    pushTest: 'Prova dal server tra {n} secondi',
+    pushTestHint: 'Ora blocca lo schermo: tra {n} secondi deve arrivare la notifica.',
+    pushTestBody: 'Arrivata dal server: funziona anche a schermo bloccato.',
+    pushTestErr: 'Prova non riuscita: {msg}',
+    pushTimeout: 'il server non ha risposto in tempo',
+    pushLastOk: 'Ultimo invio al server riuscito alle {time}.',
+    pushLastErr: 'Ultimo invio al server non riuscito alle {time} ({msg}). Il timer del telefono funziona comunque.',
     notifyPhoneSettings: 'Impostazioni dell\'iPhone per la vibrazione',
     notifyPhoneSettingsText: '1) Impostazioni → Notifiche → {app}: "Consenti notifiche" attivo, avvisi "Schermata di blocco", "Centro Notifiche" e "Banner" attivi, "Suoni" attivo.\n2) Impostazioni → Suoni e feedback aptico → Feedback aptico (Haptics): scegli "Riproduci sempre" per sentirla sia con la suoneria sia in silenzioso. Nelle versioni più vecchie: "Vibra con suoneria" e "Vibra in modalità silenziosa".\n3) Full immersion (Non disturbare, Sonno, Allenamento…): se ne usi una, apri Impostazioni → Full immersion → [modalità] → App consentite e aggiungi {app}, altrimenti notifica e vibrazione vengono bloccate.\n4) In silenzioso: con la modalità audio "Si mescola alla musica" il bip dell\'app tace e resta solo la vibrazione della notifica.',
     updateAvailable: 'Nuova versione disponibile.',

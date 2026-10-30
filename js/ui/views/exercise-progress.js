@@ -14,6 +14,7 @@ import { exerciseIcon } from '../pictograms.js';
 import { fmtBest, fmtSet } from '../setformat.js';
 import { subnav, periodDays, periodSelect } from './progress-common.js';
 import { backLink } from './programs.js';
+import { helpTip } from '../components.js';
 
 // Metrica scelta per esercizio (resta finché l'app è aperta)
 const chosenMetric = new Map();
@@ -85,7 +86,7 @@ export function renderDetail(root, ctx, id) {
     h('button', {
       type: 'button', class: 'chip chip-sm' + (mt === metric ? ' active' : ''), 'aria-pressed': mt === metric ? 'true' : 'false',
       onClick: () => { chosenMetric.set(id, mt); refresh(); },
-    }, t('metric_' + mt)))));
+    }, t('metric_' + mt))), helpTip('metrics', t('trendTitle'))));
   root.append(h('div', { class: 'filters' }, periodSelect(refresh)));
 
   // Grafico (al massimo le ultime N sessioni)
@@ -121,7 +122,7 @@ export function renderDetail(root, ctx, id) {
   if (m.fields.includes('distance')) add('maxDistance', rec.maxDistance && formatDistance(rec.maxDistance.value));
   if (lines.length) {
     root.append(h('section', { class: 'card' },
-      h('div', { class: 'card-eyebrow' }, icon('trophy'), t('records')),
+      h('div', { class: 'card-eyebrow' }, icon('trophy'), t('records'), helpTip('records', t('records'))),
       h('ul', { class: 'plain-list record-list' }, lines.map(([label, value, date]) =>
         h('li', null, h('span', { class: 'grow' }, label), h('strong', null, value), h('span', { class: 'muted small' }, date))))));
   }

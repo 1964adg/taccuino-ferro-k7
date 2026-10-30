@@ -6,7 +6,7 @@ import { t, get } from '../../config.js';
 import * as repo from '../../domain/repo.js';
 import * as ops from '../../domain/programs.js';
 import { restFor } from '../../domain/model.js';
-import { button, chooseDialog, confirmDialog, textDialog, toast, safe } from '../components.js';
+import { button, chooseDialog, confirmDialog, textDialog, toast, safe, helpTip } from '../components.js';
 import { makeSortable } from '../sortable.js';
 import { weekdayChips, pickExercise, editItem } from '../editors.js';
 import { fmtItem } from '../setformat.js';
@@ -53,7 +53,7 @@ function sortRow({ main, onOpen, onUp, onDown, isFirst, isLast }) {
 // ---------- Elenco schede ----------
 
 function renderList(root, ctx) {
-  root.append(h('header', { class: 'page-header' }, h('h1', { class: 'page-title' }, t('tabPrograms'))));
+  root.append(h('header', { class: 'page-header' }, h('h1', { class: 'page-title with-help' }, t('tabPrograms'), helpTip('programs', t('tabPrograms')))));
 
   root.append(h('div', { class: 'action-grid' },
     button(t('newProgram'), { variant: 'primary', iconName: 'plus', onClick: async () => {
@@ -188,7 +188,7 @@ function renderDay(root, ctx, program, day) {
     button(t('more'), { iconName: 'more', onClick: () => dayMenu(ctx, program, day) })));
 
   root.append(h('section', { class: 'card stack' },
-    h('div', { class: 'card-eyebrow' }, t('weekdaysLabel')),
+    h('div', { class: 'card-eyebrow' }, t('weekdaysLabel'), helpTip('weekdays', t('weekdaysLabel'))),
     weekdayChips(day.weekdays || [], (v) => safe(async () => { day.weekdays = v; await repo.saveProgram(program); })),
   ));
 

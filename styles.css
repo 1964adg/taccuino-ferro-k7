@@ -585,6 +585,9 @@ textarea.input { resize: vertical; }
 
 .item-ex { display: flex; flex-direction: column; gap: .5rem; padding-bottom: .5rem; border-bottom: 1px solid var(--c-border); }
 .stepper-grid.two { grid-template-columns: 1fr 1fr; }
+/* Etichette di altezza diversa (es. con il "?"): i selettori restano allineati in basso */
+.stepper-grid.two .stepper { justify-content: flex-end; }
+.stepper-label:has(.help-tip) { display: flex; align-items: center; gap: .1rem; }
 .stepper-grid.two .stepper-btn { width: calc(var(--tap-min) * .85); }
 .stepper-grid.two .stepper-value { font-size: 1.5rem; }
 
@@ -779,6 +782,19 @@ textarea.input { resize: vertical; }
 @keyframes splashIn { from { opacity: 0; transform: translateY(12px) scale(.96); } }
 
 .text-danger { color: var(--c-danger); }
+
+/* Aiuto contestuale: piccolo "?" accanto alle voci */
+.help-tip {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 34px; min-height: 34px; padding: 0; margin: -8px -6px -8px 0;
+  border: 0; background: none; color: var(--c-muted);
+  vertical-align: middle; cursor: pointer;
+  text-transform: none; letter-spacing: 0; font-size: 1rem;
+}
+.help-tip .icon, .help-tip svg { width: 1.15em; height: 1.15em; }
+.help-tip:active { color: var(--c-primary); }
+.with-help { display: inline-flex; align-items: center; gap: .15rem; }
+.help-text p { margin: 0; line-height: 1.5; }
 
 /* Lampeggio di fine recupero (animato da feedback.js) */
 .screen-flash {

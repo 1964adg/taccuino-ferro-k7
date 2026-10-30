@@ -13,12 +13,13 @@ import * as io from '../../io.js';
 import { exerciseIcon } from '../pictograms.js';
 import * as fb from '../../feedback.js';
 import * as notify from '../../notify.js';
+import * as push from '../../push.js';
 import {
   formatClock, formatDate, formatDuration, formatVolume, formatNumber,
   kgToDisplay, displayToKg, mToDisplay, displayToM, weightUnit, distanceUnit,
 } from '../../format.js';
 import {
-  button, stepper, openSheet, confirmDialog, chooseDialog, textDialog, toast, toggle, safe,
+  button, stepper, openSheet, confirmDialog, chooseDialog, textDialog, toast, toggle, safe, helpTip, showHelp,
 } from '../components.js';
 
 export function render(root, ctx) {
@@ -53,6 +54,7 @@ export function render(root, ctx) {
   let curWarmup = false;
   let restHideTimer = null;
   let lastCountdown = null; // ultimo secondo del 3-2-1 già suonato
+  let pushCancelledNearEnd = false; // push del server annullata negli ultimi secondi (app in primo piano)
 
   // ---- Timer di recupero ----
   const restTime = h('div', { class: 'rest-time' });
@@ -88,9 +90,18 @@ export function render(root, ctx) {
         restTime.classList.add('pulse');
       }
       if (sec > from) lastCountdown = null;
+      // App in primo piano negli ultimi secondi: avvisa già il telefono (notifica locale),
+      // quindi la push del server, che arriverebbe 1–3 s dopo, si annulla
+      const before = get('push.cancelBeforeEndSec');
+      if (!pushCancelledNearEnd && before > 0 && rem <= before && rem > 0
+        && document.visibilityState === 'visible' && notify.restNotifyActive() && push.configured()) {
+        pushCancelledNearEnd = true;
+        push.cancel();
+      }
     },
     onWarn: () => { fb.playSound('warn'); fb.haptic(1); },
     onEnd: (late) => {
+      pushCancelledNearEnd = false;
       const notified = notify.restEnded(restInfo(), late);
       if (!(notified && get('notify.replaceEndSound'))) fb.playSound('end');
       fb.haptic(3);
@@ -131,21 +142,39 @@ export function render(root, ctx) {
     restPanel.classList.remove('show', 'over', 'warn');
     restPanel.hidden = true;
   }
+  // Sveglia sul server (schermo bloccato): ogni cambio del recupero la sostituisce
+  const pushNote = () => notify.restText(restInfo());
+  function schedulePush(opts) {
+    pushCancelledNearEnd = false;
+    if (timer.running) push.schedule(timer.remaining() * 1000, pushNote(), opts);
+  }
   function startRest(sec) {
     lastCountdown = null;
     const snap = timer.start(sec);
     showRest();
     safe(() => wk.setRest(session, snap));
+    schedulePush();
   }
   function adjustRest(delta) {
     const snap = timer.adjust(delta);
-    if (snap) safe(() => wk.setRest(session, snap));
+    if (snap) {
+      safe(() => wk.setRest(session, snap));
+      schedulePush();
+    }
   }
   function endRest() {
+    if (timer.running) push.cancel();
+    pushCancelledNearEnd = false;
     timer.stop(true);
     hideRest();
     safe(() => wk.setRest(session, null));
   }
+  // Push annullata perché l'app era in primo piano, ma l'app va in background
+  // (o si blocca lo schermo) prima della fine: si riprogramma
+  const onHidden = () => {
+    if (document.visibilityState === 'hidden' && pushCancelledNearEnd && timer.running) schedulePush({ keepalive: true });
+  };
+  document.addEventListener('visibilitychange', onHidden);
 
   // Recupero in corso al momento della riapertura
   if (session.rest && session.rest.endAt > Date.now()) {
@@ -214,7 +243,8 @@ export function render(root, ctx) {
     if (get('workout.showLastTime')) {
       const last = stats.lastPerformance(e.exerciseId, session.id);
       info.append(h('div', { class: 'wk-last' },
-        h('span', { class: 'wk-info-label' }, last ? `${t('lastTime')} · ${formatDate(last.session.startedAt, get('dates.shortFormat'))}` : t('firstTime')),
+        h('span', { class: 'wk-info-label' }, last ? `${t('lastTime')} · ${formatDate(last.session.startedAt, get('dates.shortFormat'))}` : t('firstTime'),
+          helpTip('lastTime', t('lastTime'))),
         last ? h('span', null, last.sets.map((s) => fmtSet(s, ex)).join('  ·  ')) : null,
       ));
     }
@@ -417,7 +447,9 @@ export function render(root, ctx) {
     }
     opts.push({ value: 'addExercise', label: t('addExercise'), icon: 'dumbbell' });
     if (session.entries.length > 1) opts.push({ value: 'goTo', label: t('goToExercise'), icon: 'list' });
+    opts.push({ value: 'help', label: t('helpWorkoutMenu'), icon: 'help' });
     const choice = await chooseDialog(t('more'), opts);
+    if (choice === 'help') { showHelp('workoutMenu', t('helpWorkoutMenu')); return; }
     if (choice === 'addSet') await safe(async () => { await wk.addExtraSet(session, e); renderAll(); });
     else if (choice === 'skip') {
       await safe(() => wk.toggleSkip(session, e));
@@ -516,6 +548,7 @@ export function render(root, ctx) {
     });
     function close() {
       sheet.close();
+      if (timer.running) push.cancel();
       timer.stop(true);
       fb.keepScreenOn(false);
     }
@@ -541,6 +574,7 @@ export function render(root, ctx) {
   return () => {
     clearInterval(clockInterval);
     clearTimeout(restHideTimer);
+    document.removeEventListener('visibilitychange', onHidden);
     timer.destroy();
     fb.keepScreenOn(false);
   };
