@@ -69,6 +69,7 @@ export const SETTINGS_SCHEMA = [
       { path: 'workout.carryOver', type: 'toggle', label: 'La serie successiva riprende i valori appena fatti', help: 'Se cambi il peso nella serie 1, la serie 2 parte già con quel peso.' },
       { path: 'workout.confirmMode', type: 'select', label: 'Tasto "Fatto"', options: [opt('tap', 'Un tocco registra la serie'), opt('hold', 'Tieni premuto per registrare'), opt('confirm', 'Tocco + conferma')] },
       { path: 'workout.holdMs', type: 'number', label: 'Durata della pressione (ms)', min: 200, max: 2000, step: 100, decimals: 0, help: 'Solo con "Tieni premuto".' },
+      { path: 'exerciseIcons.show', type: 'toggle', label: 'Mostra le icone degli esercizi', help: 'Pittogrammi scelti in automatico; si cambiano (anche con una foto) in Schede → Libreria esercizi.' },
       { path: 'workout.showLastTime', type: 'toggle', label: 'Mostra i dati dell\'ultima volta' },
       { path: 'workout.showRecords', type: 'toggle', label: 'Mostra e segnala i record' },
       { path: 'workout.swipe', type: 'toggle', label: 'Scorri lateralmente per cambiare esercizio' },

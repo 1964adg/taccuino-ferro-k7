@@ -238,3 +238,19 @@ L'app è completa e pubblicabile. Resta solo la **tappa 6 facoltativa** (notific
   - resta `updateViaCache: 'none'`.
 - **Passaggio**: sull'iPhone c'è ancora il service worker vecchio, ma dato che `service-worker.js` ora cambia, lo rileva e si aggiorna alla 1.0.4. Il file `version.js` rimasto nel repository GitHub è innocuo (non è più usato) e si può eliminare.
 - **Prova**: versione letta correttamente; cambiando solo `service-worker.js` (1.0.4 → 1.0.5) compare l'aggiornamento e dopo "Aggiorna" risulta 1.0.5 (numero poi rimesso a 1.0.4).
+
+## Versione 1.0.5 — Icone degli esercizi
+
+- **Scelta dell'utente**: opzione 1, cioè pittogrammi disegnati a mano più foto dalla galleria.
+- **`js/ui/pictograms.js`**: 21 pittogrammi SVG (griglia 48×48, tratto 3, testa piena), nello stesso stile delle icone dell'app: trazioni, panca, squat, stacco, rematore, spinte, curl, tricipiti ai cavi, leg press, macchina gambe, polpacci, plank, addominali, dip, croci, affondi, corsa, bici, kettlebell, stretching, generico.
+- **Campo `icon` dell'esercizio**:
+  - assente o `auto`: scelto dalle regole di `exerciseIcons.rules` (parole nel nome, in ordine, con esclusioni) e poi da `exerciseIcons.groups` (gruppo muscolare);
+  - `none`: nessuna icona;
+  - una chiave di pittogramma;
+  - `image`: foto in `ex.image`, ritagliata al centro e ridotta a 160 px in JPEG come data URL.
+  Nessuna migrazione: i campi sono facoltativi.
+- **Dove compaiono**: allenamento (grande, accanto al nome), giorni della scheda, libreria, scelta dell'esercizio, progressi per esercizio, dettaglio della cronologia.
+- **Editor dell'esercizio**: campo "Icona" con anteprima e "Cambia icona", che apre una griglia con Automatica, Foto dalla galleria, Nessuna e tutti i pittogrammi.
+- **Impostazione**: "Mostra le icone degli esercizi" (Allenamento).
+- **Tema scuro**: contrasto delle icone aumentato.
+- **Prova**: assegnazione automatica corretta sulla scheda di esempio, griglia di scelta, caricamento di una foto.

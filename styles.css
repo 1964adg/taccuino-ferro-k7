@@ -666,6 +666,46 @@ textarea.input { resize: vertical; }
 .chart-bar.current { fill: var(--c-primary); }
 .chart-bar.selected { fill: var(--c-secondary); }
 
+/* ---------- Icone degli esercizi ---------- */
+
+.ex-icon {
+  flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: calc(var(--radius) * .55);
+  background: color-mix(in srgb, var(--c-primary) 13%, var(--c-surface));
+  color: var(--c-primary);
+  overflow: hidden;
+}
+.ex-icon svg { width: 78%; height: 78%; }
+[data-theme="dark"] .ex-icon:not(.ex-icon-photo):not(.ex-icon-empty) {
+  background: color-mix(in srgb, var(--c-primary) 24%, var(--c-surface));
+  color: color-mix(in srgb, var(--c-primary) 55%, var(--c-text));
+}
+.ex-icon-sm { width: 2.4rem; height: 2.4rem; }
+.ex-icon-md { width: 3rem; height: 3rem; }
+.ex-icon-lg { width: 3.6rem; height: 3.6rem; border-radius: calc(var(--radius) * .7); }
+.ex-icon-photo { background: var(--c-surface-2); }
+.ex-icon-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ex-icon-empty { background: transparent; border: 2px dashed var(--c-border); }
+.ex-icon-photo-add .icon { width: 50%; height: 50%; }
+
+.wk-title-row { display: flex; align-items: center; gap: .75rem; margin-top: .25rem; }
+.wk-title-row .wk-name, .wk-title-row .page-title { margin: 0; }
+.sort-with-icon { display: flex; align-items: center; gap: .7rem; }
+.list-main-icon { flex-direction: row !important; align-items: center !important; gap: .7rem; }
+.stack-tight { display: flex; flex-direction: column; align-items: flex-start; gap: .35rem; }
+
+.icon-field { display: flex; align-items: center; gap: .9rem; }
+.icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(5.2rem, 1fr)); gap: .5rem; }
+.icon-tile {
+  display: flex; flex-direction: column; align-items: center; gap: .35rem;
+  padding: .6rem .3rem; min-height: var(--tap-min);
+  border: 2px solid transparent; border-radius: calc(var(--radius) * .7);
+  background: var(--c-surface-2);
+}
+.icon-tile.active { border-color: var(--c-primary); }
+.icon-tile-label { font-size: .7rem; line-height: 1.15; text-align: center; color: var(--c-muted); }
+
 /* ---------- Backup ---------- */
 
 .card-reminder {

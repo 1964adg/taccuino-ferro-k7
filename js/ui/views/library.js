@@ -6,6 +6,7 @@ import * as repo from '../../domain/repo.js';
 import * as ops from '../../domain/programs.js';
 import { button, chooseDialog, toast, safe } from '../components.js';
 import { editExercise } from '../editors.js';
+import { exerciseIcon } from '../pictograms.js';
 
 // La ricerca resta finché l'app è aperta
 let query = '';
@@ -63,12 +64,14 @@ export function render(root, ctx) {
 function exRow(e, ctx) {
   const n = repo.exerciseUsageCount(e.id);
   return h('li', null, h('div', { class: 'list-row' },
-    h('button', { type: 'button', class: 'list-main', onClick: async () => {
+    h('button', { type: 'button', class: 'list-main list-main-icon', onClick: async () => {
       const res = await editExercise(e);
       if (res) ctx.render({ keepScroll: true });
     } },
-    h('span', { class: 'sort-title' }, e.name),
-    h('span', { class: 'sort-meta' }, [t('measure_' + e.measure), n ? t('usedInDays', { n }) : t('unused')].join(' · '))),
+    exerciseIcon(e, 'sm'),
+    h('span', { class: 'sort-text' },
+      h('span', { class: 'sort-title' }, e.name),
+      h('span', { class: 'sort-meta' }, [t('measure_' + e.measure), n ? t('usedInDays', { n }) : t('unused')].join(' · ')))),
     h('button', { type: 'button', class: 'arrow-btn', 'aria-label': t('more'), onClick: async () => {
       const choice = await chooseDialog(e.name, [
         { value: 'edit', label: t('edit'), icon: 'edit' },

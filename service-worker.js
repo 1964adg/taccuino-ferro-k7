@@ -4,7 +4,7 @@
 // ===== VERSIONE DELL'APP: aumentarla a OGNI pubblicazione =====
 // Safari capisce che c'è un aggiornamento solo se QUESTO file cambia:
 // per questo il numero di versione sta qui e non in un file separato.
-const APP_VERSION = '1.0.4';
+const APP_VERSION = '1.0.5';
 // ===============================================================
 // Se si aggiungono o tolgono file dell'app, aggiornare anche l'elenco FILES qui sotto
 // (controllo: node tools/check-sw.mjs).
@@ -45,6 +45,7 @@ const FILES = [
   './js/ui/components.js',
   './js/ui/dom.js',
   './js/ui/editors.js',
+  './js/ui/pictograms.js',
   './js/ui/setformat.js',
   './js/ui/sortable.js',
   './js/ui/views/body.js',

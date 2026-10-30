@@ -10,6 +10,7 @@ import { RestTimer } from '../../timer.js';
 import { fmtTarget, fmtSet, fmtBest } from '../setformat.js';
 import { setFieldStepper, readSetSteppers, editSetDialog } from '../editors.js';
 import * as io from '../../io.js';
+import { exerciseIcon } from '../pictograms.js';
 import * as fb from '../../feedback.js';
 import {
   formatClock, formatDate, formatDuration, formatVolume, formatNumber,
@@ -188,7 +189,7 @@ export function render(root, ctx) {
     const head = h('div', { class: 'wk-head' },
       h('div', { class: 'wk-count' }, `${session.currentIndex + 1} ${t('of')} ${session.entries.length}`,
         ex.muscleGroup ? ` · ${ex.muscleGroup}` : '', e.extra ? ` · ${t('offPlan')}` : ''),
-      h('h1', { class: 'wk-name' }, ex.name),
+      h('div', { class: 'wk-title-row' }, exerciseIcon(ex, 'lg'), h('h1', { class: 'wk-name' }, ex.name)),
       target ? h('div', { class: 'wk-target' }, `${t('target')}: ${e.plannedSets} ${t('sets').toLowerCase()} · ${fmtTarget(target, m)} · ${t('rest')} ${formatClock(e.restSec)}`) : null,
     );
 

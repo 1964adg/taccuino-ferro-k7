@@ -11,6 +11,7 @@ import {
 import { button, stepper, toggle, confirmDialog, chooseDialog, toast, safe } from '../components.js';
 import { editSetDialog, pickExercise } from '../editors.js';
 import { fmtSet } from '../setformat.js';
+import { exerciseIcon } from '../pictograms.js';
 import { debounce, uid } from '../../util.js';
 import { filters, periodDays, periodSelect, subnav, statTile } from './progress-common.js';
 import { backLink } from './programs.js';
@@ -166,6 +167,7 @@ export function renderSession(root, ctx, id) {
 
     root.append(h('section', { class: 'card stack' },
       h('div', { class: 'card-row' },
+        exerciseIcon(ex, 'sm'),
         h('button', { type: 'button', class: 'link-title grow', onClick: () => ctx.navigate(`progress/exercise/${ex.id}`) }, ex.name),
         button(null, { iconName: 'more', className: 'btn-icon btn-sm', ariaLabel: t('more'), onClick: async () => {
           const c = await chooseDialog(ex.name, [{ value: 'remove', label: t('removeFromDay'), icon: 'x' }]);

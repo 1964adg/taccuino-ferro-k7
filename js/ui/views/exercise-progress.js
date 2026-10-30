@@ -10,6 +10,7 @@ import {
   formatDate, formatWeight, formatVolume, formatNumber, formatClock, formatDistance, kgToDisplay, mToDisplay,
 } from '../../format.js';
 import { lineChart } from '../charts.js';
+import { exerciseIcon } from '../pictograms.js';
 import { fmtBest, fmtSet } from '../setformat.js';
 import { subnav, periodDays, periodSelect } from './progress-common.js';
 import { backLink } from './programs.js';
@@ -31,6 +32,7 @@ export function renderList(root, ctx) {
     const best = fmtBest(stats.bests(ex.id), measureOf(ex));
     return h('button', { type: 'button', class: 'card card-link', onClick: () => ctx.navigate(`progress/exercise/${ex.id}`) },
       h('div', { class: 'card-row' },
+        exerciseIcon(ex, 'md'),
         h('div', { class: 'grow' },
           h('div', { class: 'card-title' }, ex.name),
           h('div', { class: 'card-meta' }, [t('lastDone', { date: formatDate(lastTs, get('dates.shortFormat')) }), t('timesDone', { n: count })].join(' · ')),
@@ -73,7 +75,7 @@ export function renderDetail(root, ctx, id) {
 
   root.append(h('header', { class: 'page-header' },
     h('div', { class: 'eyebrow' }, [ex.muscleGroup, t('measure_' + ex.measure)].filter(Boolean).join(' · ')),
-    h('h1', { class: 'page-title' }, ex.name)));
+    h('div', { class: 'wk-title-row' }, exerciseIcon(ex, 'lg'), h('h1', { class: 'page-title' }, ex.name))));
 
   // Metrica e periodo
   const metrics = hist.metricsFor(ex);

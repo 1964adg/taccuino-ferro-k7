@@ -10,6 +10,7 @@ import { button, chooseDialog, confirmDialog, textDialog, toast, safe } from '..
 import { makeSortable } from '../sortable.js';
 import { weekdayChips, pickExercise, editItem } from '../editors.js';
 import { fmtItem } from '../setformat.js';
+import { exerciseIcon } from '../pictograms.js';
 import * as library from './library.js';
 import * as importView from './import.js';
 
@@ -195,9 +196,9 @@ function renderDay(root, ctx, program, day) {
   const list = h('ul', { class: 'sort-list' }, day.items.map((it, i) => {
     const ex = repo.getExercise(it.exerciseId) || { name: '?', measure: 'weight_reps' };
     return sortRow({
-      main: h('div', { class: 'sort-text' },
+      main: h('div', { class: 'sort-with-icon' }, exerciseIcon(ex, 'sm'), h('div', { class: 'sort-text' },
         h('span', { class: 'sort-title' }, ex.name, ex.archived ? h('span', { class: 'tag' }, t('archivedLabel')) : null),
-        h('span', { class: 'sort-meta' }, fmtItem(it, ex, restFor(it, ex)))),
+        h('span', { class: 'sort-meta' }, fmtItem(it, ex, restFor(it, ex))))),
       onOpen: () => openItem(ctx, program, day, it),
       onUp: () => safe(async () => { await ops.reorderItems(program, day, i, i - 1); refresh(ctx); }),
       onDown: () => safe(async () => { await ops.reorderItems(program, day, i, i + 1); refresh(ctx); }),

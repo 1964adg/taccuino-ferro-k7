@@ -41,6 +41,49 @@ export const DEFAULTS = {
     },
   },
 
+  // Icone degli esercizi: pittogrammi scelti in automatico dal nome (regole in ordine,
+  // vince la prima che corrisponde) o dal gruppo muscolare. Ogni esercizio può
+  // avere un pittogramma scelto a mano o una foto dalla galleria.
+  exerciseIcons: {
+    show: true,
+    photoSize: 160,          // px del lato della foto salvata
+    photoQuality: 0.8,       // qualità JPEG (0–1)
+    fallback: 'dumbbell',
+    rules: [
+      { icon: 'pullup', match: ['trazion', 'pull up', 'pull-up', 'pullup', 'chin', 'lat machine', 'lat pull', 'pulldown'] },
+      { icon: 'legpress', match: ['leg press', 'pressa'] },
+      { icon: 'legmachine', match: ['leg curl', 'leg extension', 'extension', 'adductor', 'abductor', 'adduttor', 'abduttor'] },
+      { icon: 'bench', match: ['panca', 'bench', 'chest press', 'distension', 'push up', 'piegamenti'] },
+      { icon: 'squat', match: ['squat', 'hack', 'goblet'] },
+      { icon: 'deadlift', match: ['stacco', 'stacchi', 'deadlift', 'rdl', 'good morning', 'hip thrust', 'ponte'] },
+      { icon: 'row', match: ['rematore', 'row', 'pulley', 'pull over', 'pullover'] },
+      { icon: 'pushdown', match: ['push down', 'pushdown', 'french', 'tricip', 'skull', 'kick back', 'kickback'] },
+      { icon: 'curl', match: ['curl', 'bicip', 'hammer'], exclude: ['leg curl'] },
+      { icon: 'press', match: ['lento', 'military', 'overhead', 'shoulder press', 'arnold', 'spinte'] },
+      { icon: 'fly', match: ['croci', 'fly', 'pec deck', 'butterfly', 'alzate', 'lateral', 'face pull'] },
+      { icon: 'dip', match: ['dip', 'parallele'] },
+      { icon: 'calf', match: ['calf', 'polpacc'] },
+      { icon: 'plank', match: ['plank', 'tenuta', 'hollow'] },
+      { icon: 'crunch', match: ['crunch', 'addominal', 'sit up', 'sit-up', 'abs', 'russian twist', 'leg raise'] },
+      { icon: 'lunge', match: ['affond', 'lunge', 'step up', 'bulgar', 'split'] },
+      { icon: 'run', match: ['corsa', 'run', 'tapis', 'treadmill', 'camminata', 'walk'] },
+      { icon: 'bike', match: ['bici', 'bike', 'cyclette', 'spinning', 'ellittic'] },
+      { icon: 'kettlebell', match: ['kettlebell', 'swing'] },
+      { icon: 'stretch', match: ['stretch', 'allungamento', 'mobilit', 'yoga'] },
+    ],
+    // Se il nome non basta: gruppo muscolare → pittogramma
+    groups: {
+      petto: 'bench', chest: 'bench',
+      dorso: 'row', schiena: 'row', back: 'row',
+      gambe: 'squat', quadricipiti: 'squat', legs: 'squat',
+      femorali: 'deadlift', glutei: 'lunge',
+      spalle: 'press', shoulders: 'press',
+      bicipiti: 'curl', tricipiti: 'pushdown', braccia: 'curl',
+      polpacci: 'calf', core: 'plank', addominali: 'crunch',
+      cardio: 'run',
+    },
+  },
+
   welcome: {
     enabled: true,           // schermata di benvenuto all'apertura dell'app
     durationMs: 1800,        // quanto resta visibile (un tocco la chiude prima)
@@ -446,6 +489,38 @@ export const DEFAULTS = {
     reminderLater: 'Più tardi',
     reminderNow: 'Esporta ora',
     csvTime: 'Ora',
+
+    // Icone degli esercizi
+    exerciseIconLabel: 'Icona',
+    changeIcon: 'Cambia icona',
+    iconAuto: 'Automatica',
+    iconAutoHint: 'Scelta dal nome o dal gruppo muscolare',
+    iconNone: 'Nessuna icona',
+    iconPhoto: 'Foto dalla galleria',
+    iconPhotoHint: 'Scegli una foto o un\'immagine dal telefono',
+    iconPictograms: 'Pittogrammi',
+    photoError: 'Impossibile leggere l\'immagine.',
+    picto_pullup: 'Trazioni / lat machine',
+    picto_bench: 'Panca',
+    picto_squat: 'Squat',
+    picto_deadlift: 'Stacco',
+    picto_row: 'Rematore',
+    picto_press: 'Spinte sopra la testa',
+    picto_curl: 'Curl',
+    picto_pushdown: 'Tricipiti ai cavi',
+    picto_legpress: 'Leg press',
+    picto_legmachine: 'Macchina gambe',
+    picto_calf: 'Polpacci',
+    picto_plank: 'Plank',
+    picto_crunch: 'Addominali',
+    picto_dip: 'Dip',
+    picto_fly: 'Croci / alzate',
+    picto_lunge: 'Affondi',
+    picto_run: 'Corsa',
+    picto_bike: 'Bici',
+    picto_kettlebell: 'Kettlebell',
+    picto_stretch: 'Stretching',
+    picto_dumbbell: 'Generico',
 
     // App, aggiornamenti, accessibilità
     aboutApp: 'Informazioni',

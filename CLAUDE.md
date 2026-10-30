@@ -40,6 +40,8 @@ js/domain/programs.js     operazioni su schede, giorni e voci (copia, riordino, 
 js/domain/textImport.js   analisi della scheda scritta come testo
 js/domain/history.js      periodi, filtri, serie per i grafici, riepiloghi, record, recomputeRecords()
 js/ui/charts.js           grafici SVG (linea nel tempo, barre) senza librerie
+js/ui/pictograms.js       pittogrammi degli esercizi (SVG 48×48 disegnati a mano), scelta automatica
+                          con regole in config (exerciseIcons), foto dalla galleria ridotta a JPEG
 js/ui/app.js              instradamento a hash (#/schermata/parametri), barra in basso
 js/ui/components.js       pannelli dal basso, conferme, avvisi, stepper, toggle, safe()
 js/ui/editors.js          editor di esercizio e voce, scelta esercizio, chip dei giorni

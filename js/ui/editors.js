@@ -11,6 +11,9 @@ import {
 } from '../format.js';
 import { fmtReps } from './setformat.js';
 import {
+  exerciseIcon, resolveIcon, autoPictogram, pictogramLabel, PICTOGRAM_KEYS, imageFileToIcon,
+} from './pictograms.js';
+import {
   openSheet, button, stepper, toggle, toast, confirmDialog, numberDialog, safe,
 } from './components.js';
 
@@ -131,7 +134,7 @@ export function pickExercise(title = t('addExercise')) {
           .map((e) => h('button', {
             type: 'button', class: 'choice',
             onClick: () => { result = e.id; s.close(); },
-          }, h('span', { class: 'choice-text' },
+          }, exerciseIcon(e, 'sm'), h('span', { class: 'choice-text' },
             h('span', { class: 'choice-label' }, e.name),
             h('span', { class: 'choice-hint' }, [e.muscleGroup, t('measure_' + e.measure)].filter(Boolean).join(' · '))))),
       );
@@ -168,6 +171,31 @@ export function editExercise(ex, preset = {}) {
     measure.value = draft.measure;
 
     const restField = restControl(draft.restSec, get('timer.defaultRestSec'), (v) => { draft.restSec = v; });
+
+    // Icona: anteprima + scelta
+    const iconPreview = h('span', { class: 'icon-field-preview' });
+    const iconName = h('span', { class: 'muted small' });
+    const drawIcon = () => {
+      const el = exerciseIcon({ ...draft, name: name.value || draft.name, muscleGroup: group.value || draft.muscleGroup }, 'lg', { force: true });
+      iconPreview.replaceChildren(el || h('span', { class: 'ex-icon ex-icon-lg ex-icon-empty' }));
+      const r = resolveIcon(draft);
+      iconName.textContent = draft.icon === 'none' ? t('iconNone')
+        : r.kind === 'image' ? t('iconPhoto')
+        : !draft.icon || draft.icon === 'auto' ? `${t('iconAuto')} · ${pictogramLabel(autoPictogram({ ...draft, name: name.value, muscleGroup: group.value }))}`
+        : pictogramLabel(draft.icon);
+    };
+    name.addEventListener('input', drawIcon);
+    group.addEventListener('input', drawIcon);
+    const iconField = h('div', { class: 'icon-field' }, iconPreview,
+      h('div', { class: 'grow stack-tight' }, iconName,
+        button(t('changeIcon'), { className: 'btn-sm', onClick: async () => {
+          const res = await pickIcon({ ...draft, name: name.value, muscleGroup: group.value });
+          if (!res) return;
+          draft.icon = res.icon;
+          draft.image = res.image ?? (res.icon === 'image' ? draft.image : null);
+          drawIcon();
+        } })));
+    drawIcon();
 
     const notes = h('textarea', { class: 'input', rows: 2, placeholder: t('notes'), 'aria-label': t('notes') });
     notes.value = draft.notes || '';
@@ -211,6 +239,7 @@ export function editExercise(ex, preset = {}) {
         field(t('exerciseName'), name),
         field(t('muscleGroup'), h('div', null, group, groupChips)),
         field(t('measureType'), measure),
+        field(t('exerciseIconLabel'), iconField),
         field(t('exerciseRest'), restField),
         notes,
         archivedRow,
@@ -221,6 +250,46 @@ export function editExercise(ex, preset = {}) {
       className: 'sheet-tall',
     });
     if (!ex) setTimeout(() => name.focus(), 80);
+  });
+}
+
+/**
+ * Scelta dell'icona di un esercizio: automatica, foto, nessuna o un pittogramma.
+ * Restituisce { icon, image } oppure null.
+ */
+export function pickIcon(ex) {
+  return new Promise((resolve) => {
+    let result = null;
+    const choose = (r) => { result = r; s.close(); };
+    const fileInput = h('input', { type: 'file', accept: 'image/*', class: 'visually-hidden', tabindex: '-1', 'aria-hidden': 'true' });
+    fileInput.addEventListener('change', async () => {
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) return;
+      try {
+        const image = await imageFileToIcon(file);
+        choose({ icon: 'image', image });
+      } catch (err) {
+        toast(err.message, { type: 'danger' });
+      }
+    });
+    const tile = (content, label, onClick, active) => h('button', {
+      type: 'button', class: 'icon-tile' + (active ? ' active' : ''), onClick, 'aria-label': label,
+    }, content, h('span', { class: 'icon-tile-label' }, label));
+    const autoKey = autoPictogram(ex);
+    const current = ex.icon || 'auto';
+    const grid = h('div', { class: 'icon-grid' },
+      tile(exerciseIcon({ ...ex, icon: autoKey }, 'md', { force: true }), t('iconAuto'), () => choose({ icon: 'auto', image: null }), current === 'auto'),
+      tile(h('span', { class: 'ex-icon ex-icon-md ex-icon-photo-add' }, icon('plus')), t('iconPhoto'), () => fileInput.click(), current === 'image'),
+      tile(h('span', { class: 'ex-icon ex-icon-md ex-icon-empty' }), t('iconNone'), () => choose({ icon: 'none', image: null }), current === 'none'),
+      ...PICTOGRAM_KEYS.map((k) => tile(exerciseIcon({ icon: k }, 'md', { force: true }), pictogramLabel(k), () => choose({ icon: k, image: null }), current === k)),
+    );
+    const s = openSheet({
+      title: t('changeIcon'),
+      content: h('div', { class: 'stack' }, h('p', { class: 'muted small' }, t('iconAutoHint')), grid, fileInput),
+      actions: [button(t('close'), { onClick: () => s.close() })],
+      onClose: () => resolve(result),
+      className: 'sheet-tall',
+    });
   });
 }
 
