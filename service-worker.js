@@ -4,7 +4,7 @@
 // ===== VERSIONE DELL'APP: aumentarla a OGNI pubblicazione =====
 // Safari capisce che c'è un aggiornamento solo se QUESTO file cambia:
 // per questo il numero di versione sta qui e non in un file separato.
-const APP_VERSION = '1.0.5';
+const APP_VERSION = '1.0.6';
 // ===============================================================
 // Se si aggiungono o tolgono file dell'app, aggiornare anche l'elenco FILES qui sotto
 // (controllo: node tools/check-sw.mjs).
@@ -29,6 +29,7 @@ const FILES = [
   './js/format.js',
   './js/io.js',
   './js/main.js',
+  './js/notify.js',
   './js/pwa.js',
   './js/settings-schema.js',
   './js/timer.js',
@@ -80,6 +81,20 @@ self.addEventListener('message', (event) => {
   if (event.data === 'skipWaiting') self.skipWaiting();
   // La pagina chiede la versione installata (risposta sul canale ricevuto)
   if (event.data === 'getVersion' && event.ports && event.ports[0]) event.ports[0].postMessage({ version: APP_VERSION });
+});
+
+// Tocco sulla notifica: riporta all'app già aperta, altrimenti la apre sull'allenamento
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const target = new URL((event.notification.data && event.notification.data.url) || './', self.registration.scope).href;
+  event.waitUntil((async () => {
+    const list = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const client = list.find((c) => c.url.startsWith(self.registration.scope));
+    if (client) {
+      try { await client.focus(); return; } catch { /* non permesso: si apre una finestra */ }
+    }
+    if (self.clients.openWindow) await self.clients.openWindow(target);
+  })());
 });
 
 self.addEventListener('fetch', (event) => {

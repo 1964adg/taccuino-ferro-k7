@@ -51,7 +51,7 @@ Tutte le proposte accettate, più queste scelte esplicite:
 3. ✅ Cronologia e progressi: elenco modificabile, grafici SVG, record, riepiloghi, filtri, peso corporeo.
 4. ✅ Esportazione e importazione: JSON (Web Share o download), unione o sostituzione, backup automatico, CSV, promemoria di backup.
 5. ✅ Rifinitura grafica e PWA: manifest, service worker offline, icone, README completo per GitHub Pages.
-6. ⏳ Facoltativa: notifiche tramite Cloudflare Worker (Durable Object con sveglia), con il codice in `server/`.
+6. ⏳ Vibrazione e notifiche di fine recupero: A lampeggio ✅, B notifica locale ✅ (da provare sull'iPhone), C push con Cloudflare (Queues + D1), con il codice in `server/`.
 
 ## Tappa 1 — Nucleo (completata)
 
@@ -254,3 +254,41 @@ L'app è completa e pubblicabile. Resta solo la **tappa 6 facoltativa** (notific
 - **Impostazione**: "Mostra le icone degli esercizi" (Allenamento).
 - **Tema scuro**: contrasto delle icone aumentato.
 - **Prova**: assegnazione automatica corretta sulla scheda di esempio, griglia di scelta, caricamento di una foto.
+
+## Tappa 6 — Vibrazione e notifiche di fine recupero
+
+### Verifiche e decisioni (30/10/2026)
+
+- **Obiettivo dell'utente**: sentire il telefono vibrare a fine recupero. Le notifiche sono l'unico modo, perché su iOS la vibrazione la decide il sistema in base alle sue impostazioni.
+- **Durable Object dal pannello web: non possibile.** La documentazione di Cloudflare (ottobre 2026) crea le classi nuove solo con una migrazione (`new_sqlite_classes` o `exports`) applicata da `wrangler deploy`. Il pannello non offre un modo documentato.
+- **Scelta (confermata dall'utente)**: **Queues + D1**, entrambe nel piano gratuito (Queues dal febbraio 2026) e creabili dal pannello. Coda con `delaySeconds` pari al recupero. D1 tiene la sveglia valida per ogni telefono, per gestire "Salta" e "±15 s".
+- **Push vuota (confermata)**: il server non riceve né invia dati di allenamento. Il service worker compone il testo leggendo l'allenamento in corso dal telefono. Niente cifratura RFC 8291; resta la firma VAPID.
+- **Backup su R2 (opzione D)**: non ora.
+- **Limiti noti**:
+  - senza server, con l'app in background o a schermo bloccato, nessuna notifica locale può partire (JavaScript sospeso);
+  - non è documentato se iOS mostri una notifica con l'app in primo piano: va provato sull'iPhone;
+  - se il permesso viene rifiutato, bisogna reinstallare l'icona, e reinstallarla cancella i dati (fare prima un backup).
+
+### A — Lampeggio (versione 1.0.6)
+
+- `fb.flashScreen()` in `feedback.js`: un livello `.screen-flash` a tutto schermo, del colore di successo, che non intercetta i tocchi. È animato con le Web Animations, perché la regola CSS sul movimento ridotto azzera le animazioni CSS.
+- **Impostazioni** (Timer): `timer.flash`, `timer.flashCount` (3), `timer.flashMs` (450), `timer.flashOpacity` (0,85). Tasto "Prova il lampeggio" in Informazioni.
+- **Movimento ridotto**: un solo cambio di colore morbido, più tenue, della stessa durata totale.
+- **Prova**: lampeggi e versione morbida misurati nel browser; lampeggio reale a fine recupero; nessun errore.
+
+### B — Notifica locale (versione 1.0.6, insieme ad A)
+
+- **`js/notify.js`**: stato del permesso, richiesta dal tocco, `registration.showNotification` con etichetta `gaia-gym-rest` e `renotify`, notifica di prova (subito o dopo `notify.testDelaySec`).
+- **Fine recupero**:
+  - testo "Recupero finito" con "{esercizio} · serie {n}" (esercizio successivo se quello corrente è finito, "Tutti gli esercizi completati" alla fine);
+  - `RestTimer.onEnd(late)` ora passa il ritardo: oltre `notify.maxLateSec` (5 s) la notifica non parte, per esempio tornando nell'app a recupero già finito.
+- **Doppio avviso**: `notify.replaceEndSound` toglie il bip finale dell'app quando parte la notifica. Preavviso e 3-2-1 restano.
+- **Impostazioni**:
+  - riquadro "Notifiche e vibrazione": stato, "Attiva le notifiche" (che accende anche `notify.local`), "Prova notifica e vibrazione", "Prova tra 10 secondi", istruzioni per le impostazioni dell'iPhone;
+  - sezione "Notifiche di fine recupero" per le opzioni.
+- **Service worker**: `notificationclick` porta in primo piano l'app aperta, altrimenti la apre su `#/workout`.
+- **Prova nel browser**:
+  - permesso concesso via CDP;
+  - chiamate verificate: prova ("Prova di Gaia Gym"), fine recupero ("Recupero finito | Stacco rumeno · serie 2"), nessuna notifica con 250 s di ritardo simulato;
+  - Chrome headless non visualizza le notifiche.
+- **Da provare sull'iPhone**: se la notifica compare con l'app in primo piano e se vibra (suoneria, silenzioso, con musica). Dal risultato dipende il valore predefinito di "Notifica anche con l'app aperta" nella parte C.

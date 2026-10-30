@@ -1,4 +1,4 @@
-# Prompt per Claude Code — Tappa 6: notifiche di fine recupero (server Cloudflare) e vibrazione
+# Prompt per Claude Code — Tappa 6: vibrazione e notifiche di fine recupero (server Cloudflare)
 
 > Da incollare in una **nuova chat** di Claude Code aperta nella cartella `D:\GaiaGym`.
 
@@ -26,6 +26,27 @@ Le regole di `CLAUDE.md` valgono anche qui:
 2. **Vibrazione**: iOS non permette la vibrazione alle app web. `navigator.vibrate` non esiste, e il trucco dello switch di iOS 18 è stato provato e non funziona. È stato rimosso.
 3. **Speranza**: le **notifiche** su iPhone fanno vibrare il telefono, se la vibrazione è attiva in Impostazioni iPhone → Suoni e feedback aptico. Quindi una notifica a fine recupero potrebbe dare sia l'avviso a schermo bloccato sia la vibrazione.
 
+## Obiettivo principale: la vibrazione a fine recupero
+
+L'utente vuole soprattutto **sentire il telefono vibrare a fine recupero**, oltre al suono. Le notifiche (B e C) sono il mezzo per ottenerla. Per ogni soluzione va quindi verificato e riportato con chiarezza **se fa vibrare l'iPhone**, in questi casi:
+
+| Caso | Da verificare |
+|---|---|
+| App aperta, schermo acceso (uso normale in palestra) | compare la notifica? vibra? |
+| App in background (si è passati a un'altra app, es. la musica) | compare la notifica? vibra? |
+| Schermo bloccato | compare la notifica? vibra? |
+| Con musica in riproduzione | la vibrazione arriva comunque? |
+| Telefono in silenzioso | vibra? (dipende dalle impostazioni sotto) |
+
+Impostazioni dell'iPhone da spiegare all'utente nelle istruzioni, perché senza di esse la notifica può non vibrare:
+- **Impostazioni → Notifiche → Gaia Gym**: "Consenti notifiche" attivo, con stile banner e suoni attivi.
+- **Impostazioni → Suoni e feedback aptico**: vibrazione attiva in modalità suoneria e in modalità silenziosa (le voci esatte dipendono dalla versione di iOS: verificale).
+- **Modalità Full immersion e Non disturbare**: possono bloccare notifiche e vibrazione; spiegare come consentire Gaia Gym.
+
+Tieni separati il suono dell'app (già funzionante) e il suono o la vibrazione della notifica, per non avere doppi avvisi fastidiosi. Rendi configurabile cosa resta attivo.
+
+Se nessuna soluzione fa vibrare in un certo caso, dillo chiaramente e documentalo in `CLAUDE.md` e nel diario, senza fingere che funzioni.
+
 ## Obiettivi, in quest'ordine
 
 ### A. Lampeggio dello schermo a fine recupero (sicuro, senza server)
@@ -35,7 +56,8 @@ Le regole di `CLAUDE.md` valgono anche qui:
 ### B. Notifica locale a fine recupero, senza server (sperimentale)
 - Richiesta del permesso alle notifiche con un tocco esplicito, dalle Impostazioni (su iOS deve partire da un gesto, e funziona solo con l'app aggiunta alla Home, iOS 16.4 e successivi).
 - A fine recupero, se il permesso c'è: `registration.showNotification(...)` dal service worker, con testo configurabile, per esempio "Recupero finito · {esercizio}, serie {n}".
-- **Da verificare sull'iPhone**: se iOS mostra la notifica (e fa vibrare) anche con l'app aperta e in primo piano. Se non la mostra, documentarlo e tenere solo la parte server (C).
+- **Da verificare sull'iPhone**: se iOS mostra la notifica **e fa vibrare** anche con l'app aperta e in primo piano (vedi la tabella dell'obiettivo principale). Se non la mostra, documentarlo e tenere solo la parte server (C).
+- Aggiungi nelle Impostazioni un tasto **"Prova notifica e vibrazione"**: mostra subito una notifica di prova, così l'utente verifica la vibrazione senza aspettare un recupero. Uno con ritardo di 10 secondi permette anche la prova a schermo bloccato o con l'app in background.
 - Gestire `notificationclick` in modo che riporti all'app aperta.
 
 ### C. Notifiche push con server Cloudflare (schermo bloccato)

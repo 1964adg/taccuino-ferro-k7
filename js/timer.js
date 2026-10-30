@@ -5,7 +5,7 @@ const TICK_MS = 250;
 
 export class RestTimer {
   /**
-   * @param {object} cb  onTick(remainingSec, totalSec), onWarn(), onEnd(), onStop()
+   * @param {object} cb  onTick(remainingSec, totalSec), onWarn(), onEnd(lateSec), onStop()
    * @param {() => number} warnBeforeSec  letto ogni volta, così segue le impostazioni
    */
   constructor(cb, warnBeforeSec) {
@@ -78,10 +78,12 @@ export class RestTimer {
     }
     if (this.cb.onTick) this.cb.onTick(rem, this.total());
     if (rem <= 0) {
+      // Ritardo con cui ci si accorge della fine (es. app tornata dal background)
+      const late = Math.max(0, (Date.now() - this.state.endAt) / 1000);
       clearInterval(this.interval);
       this.interval = null;
       this.state = null;
-      if (this.cb.onEnd) this.cb.onEnd();
+      if (this.cb.onEnd) this.cb.onEnd(late);
     }
   }
 

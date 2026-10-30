@@ -112,6 +112,11 @@ export const DEFAULTS = {
     autoAdvance: true,
     endBannerSec: 5,         // per quanto resta visibile l'avviso di fine recupero
     keepScreenOn: true,
+    // Lampeggio a tutto schermo a fine recupero (colore di successo)
+    flash: true,
+    flashCount: 3,           // numero di lampeggi
+    flashMs: 450,            // durata di ogni lampeggio (acceso + spento)
+    flashOpacity: 0.85,      // intensità (0–1)
   },
 
   workout: {
@@ -188,6 +193,14 @@ export const DEFAULTS = {
     promptAfterWorkoutDays: 7, // proponi il backup su iCloud a fine allenamento ogni N giorni (0 = mai)
     periodicDays: 3,           // copia interna automatica ogni N giorni (0 = mai)
     periodicKept: 3,           // copie interne periodiche conservate
+  },
+
+  // Notifiche locali di fine recupero (senza server: solo con l'app aperta)
+  notify: {
+    local: false,            // notifica a fine recupero (serve il permesso)
+    replaceEndSound: false,  // con la notifica attiva, niente bip finale dell'app (evita il doppio avviso)
+    maxLateSec: 5,           // se l'app si accorge della fine con più ritardo, nessuna notifica
+    testDelaySec: 10,        // ritardo della notifica di prova "tra qualche secondo"
   },
 
   push: {
@@ -531,6 +544,32 @@ export const DEFAULTS = {
     testSound: 'Prova il suono',
     testSoundHint: 'Non senti nulla? Controlla il tasto silenzioso e il volume, o scegli "Suona anche col silenzioso" in Timer.',
     testSoundOff: 'Il suono è disattivato in Impostazioni → Timer.',
+    testFlash: 'Prova il lampeggio',
+    testFlashOff: 'Il lampeggio è disattivato in Impostazioni → Timer.',
+
+    // Notifiche e vibrazione
+    notifySection: 'Notifiche e vibrazione',
+    notifyIntro: 'Su iPhone le app web non possono far vibrare il telefono, ma le notifiche sì (secondo le impostazioni dell\'iPhone). Qui attivi le notifiche e le provi.',
+    notifyTitle: 'Recupero finito',
+    notifyBody: '{exercise} · serie {n}',
+    notifyBodyAllDone: 'Tutti gli esercizi completati',
+    notifyTestTitle: 'Prova di Gaia Gym',
+    notifyTestBody: 'Se il telefono ha vibrato, le notifiche funzionano.',
+    notifyStatusGranted: 'Notifiche permesse.',
+    notifyStatusDefault: 'Notifiche non ancora attivate.',
+    notifyStatusDenied: 'Notifiche rifiutate. Per riattivarle: Impostazioni dell\'iPhone → Notifiche → {app}. Se lì non compare, bisogna togliere l\'icona dalla Home e aggiungerla di nuovo: PRIMA esporta un backup, perché togliere l\'icona cancella i dati.',
+    notifyStatusUnsupported: 'Notifiche non disponibili in questo browser.',
+    notifyNeedsHome: 'Su iPhone le notifiche funzionano solo aprendo l\'app dall\'icona sulla Home (non da Safari).',
+    notifyEnable: 'Attiva le notifiche',
+    notifyEnabled: 'Notifiche attivate',
+    notifyRefused: 'Permesso non concesso.',
+    notifyTestNow: 'Prova notifica e vibrazione',
+    notifyTestLater: 'Prova tra {n} secondi',
+    notifyTestLaterHint: 'Tra {n} secondi arriva una notifica di prova. Tieni l\'app aperta: senza server, con lo schermo bloccato o in un\'altra app non può arrivare.',
+    notifyTestSent: 'Notifica inviata. Se non compare, iOS non mostra le notifiche con l\'app aperta.',
+    notifyTestFailed: 'La notifica non è partita. Controlla il permesso.',
+    notifyPhoneSettings: 'Impostazioni dell\'iPhone per la vibrazione',
+    notifyPhoneSettingsText: '1) Impostazioni → Notifiche → {app}: "Consenti notifiche" attivo, avvisi "Schermata di blocco", "Centro Notifiche" e "Banner" attivi, "Suoni" attivo.\n2) Impostazioni → Suoni e feedback aptico → Feedback aptico (Haptics): scegli "Riproduci sempre" per sentirla sia con la suoneria sia in silenzioso. Nelle versioni più vecchie: "Vibra con suoneria" e "Vibra in modalità silenziosa".\n3) Full immersion (Non disturbare, Sonno, Allenamento…): se ne usi una, apri Impostazioni → Full immersion → [modalità] → App consentite e aggiungi {app}, altrimenti notifica e vibrazione vengono bloccate.\n4) In silenzioso: con la modalità audio "Si mescola alla musica" il bip dell\'app tace e resta solo la vibrazione della notifica.',
     updateAvailable: 'Nuova versione disponibile.',
     updateNow: 'Aggiorna',
     updateChecking: 'Scaricamento della nuova versione…',

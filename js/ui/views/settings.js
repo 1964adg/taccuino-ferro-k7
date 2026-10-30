@@ -11,6 +11,7 @@ import { button, stepper, toggle, segmented, confirmDialog, toast, safe, openShe
 import * as io from '../../io.js';
 import * as pwa from '../../pwa.js';
 import * as fb from '../../feedback.js';
+import * as notify from '../../notify.js';
 import { debounce } from '../../util.js';
 
 // Sezioni aperte (si ricordano finché l'app resta aperta)
@@ -57,6 +58,8 @@ export function render(root, ctx) {
   ));
   db.getMeta('persisted', false).then((p) => { storageNote.textContent = p ? t('storagePersisted') : t('storageNotPersisted'); });
 
+  root.append(notifyCard(ctx));
+
   // Informazioni sull'app e aggiornamenti
   const versionEl = h('p', { class: 'muted small' }, get('app.name'));
   pwa.appVersion().then((v) => { versionEl.textContent = `${get('app.name')} · ${t('appVersion', { v: v || '—' })}`; });
@@ -70,12 +73,64 @@ export function render(root, ctx) {
       setTimeout(() => fb.playSound('end'), 60);
       toast(get('timer.sound') ? t('testSoundHint') : t('testSoundOff'));
     } }),
+    button(t('testFlash'), { iconName: 'clock', className: 'btn-block', onClick: () => {
+      if (get('timer.flash')) fb.flashScreen();
+      else toast(t('testFlashOff'));
+    } }),
     button(t('checkUpdates'), { iconName: 'reset', className: 'btn-block', onClick: async () => {
       const r = await pwa.checkForUpdate();
       const v = (await pwa.appVersion()) || '—';
       toast(r === 'latest' ? t('upToDate', { v }) : r === 'updating' ? t('updateChecking') : t('updateUnavailable'), { duration: 6000 });
     } }),
   ));
+}
+
+// ---------- Notifiche e vibrazione ----------
+
+function notifyCard(ctx) {
+  const app = get('app.name');
+  const perm = notify.permission();
+  const statusKey = {
+    granted: 'notifyStatusGranted', denied: 'notifyStatusDenied',
+    default: 'notifyStatusDefault', unsupported: 'notifyStatusUnsupported',
+  }[perm];
+  const delay = get('notify.testDelaySec');
+  const parts = [
+    h('div', { class: 'card-title' }, t('notifySection')),
+    h('p', { class: 'muted small' }, t('notifyIntro')),
+    h('p', { class: 'small' + (perm === 'denied' ? ' text-danger' : '') }, t(statusKey, { app })),
+  ];
+  // Su iPhone, in Safari (non dalla Home) l'API non esiste proprio
+  if (perm === 'unsupported' && !notify.isStandalone()) parts.push(h('p', { class: 'muted small' }, t('notifyNeedsHome')));
+
+  if (perm === 'default') {
+    parts.push(button(t('notifyEnable'), { variant: 'primary', iconName: 'check', className: 'btn-block', onClick: async () => {
+      // Richiesta subito dentro il tocco (requisito di iOS)
+      const r = await notify.requestPermission();
+      if (r === 'granted') {
+        // Chi attiva il permesso vuole anche la notifica a fine recupero
+        await safe(() => config.set('notify.local', true));
+        toast(t('notifyEnabled'), { type: 'success' });
+      } else toast(t('notifyRefused'));
+      ctx.render({ keepScroll: true });
+    } }));
+  }
+  if (perm === 'granted') {
+    parts.push(
+      button(t('notifyTestNow'), { variant: 'primary', iconName: 'clock', className: 'btn-block', onClick: async () => {
+        const ok = await notify.test(0);
+        toast(ok ? t('notifyTestSent') : t('notifyTestFailed'), { duration: 6000 });
+      } }),
+      button(t('notifyTestLater', { n: delay }), { iconName: 'clock', className: 'btn-block', onClick: () => {
+        notify.test(delay);
+        toast(t('notifyTestLaterHint', { n: delay }), { duration: 6000 });
+      } }),
+    );
+  }
+  parts.push(h('details', { class: 'archived-block' },
+    h('summary', null, t('notifyPhoneSettings')),
+    ...t('notifyPhoneSettingsText', { app }).split('\n').map((line) => h('p', { class: 'small' }, line))));
+  return h('section', { class: 'card stack' }, parts);
 }
 
 // ---------- Backup e dati ----------

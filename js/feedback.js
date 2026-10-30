@@ -116,6 +116,37 @@ export function haptic(count = 1) {
   try { navigator.vibrate(count > 1 ? Array(count * 2 - 1).fill(40) : 30); } catch { /* ignorato */ }
 }
 
+// ---- Lampeggio a tutto schermo ----
+// Un livello che non intercetta i tocchi, animato con le Web Animations
+// (non toccate dalla regola CSS sul movimento ridotto, che qui si gestisce a parte).
+
+let flashEl = null;
+
+export function flashScreen() {
+  if (!get('timer.flash')) return;
+  if (!flashEl) {
+    flashEl = document.createElement('div');
+    flashEl.className = 'screen-flash';
+    flashEl.setAttribute('aria-hidden', 'true');
+    document.body.append(flashEl);
+  }
+  if (typeof flashEl.animate !== 'function') return;
+  flashEl.getAnimations().forEach((a) => a.cancel());
+  const count = Math.max(1, Math.round(get('timer.flashCount')));
+  const ms = Math.max(50, get('timer.flashMs'));
+  const op = Math.max(0, Math.min(1, get('timer.flashOpacity')));
+  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduced) {
+    // Movimento ridotto: un solo cambio di colore morbido, più tenue, della stessa durata totale
+    const soft = op * 0.6;
+    flashEl.animate([{ opacity: 0 }, { opacity: soft, offset: 0.25 }, { opacity: soft, offset: 0.7 }, { opacity: 0 }],
+      { duration: count * ms, easing: 'ease-in-out' });
+  } else {
+    flashEl.animate([{ opacity: 0 }, { opacity: op, offset: 0.3 }, { opacity: 0 }],
+      { duration: ms, iterations: count, easing: 'ease-out' });
+  }
+}
+
 // ---- Schermo sempre acceso (Wake Lock API) ----
 
 let lock = null;

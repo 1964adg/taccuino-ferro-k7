@@ -104,6 +104,10 @@ export const SETTINGS_SCHEMA = [
       { path: 'timer.sound', type: 'toggle', label: 'Suono' },
       { path: 'timer.soundVolume', type: 'number', label: 'Volume del suono', min: 0.1, max: 1, step: 0.1, decimals: 1 },
       { path: 'timer.audioMode', type: 'select', label: 'Modalità audio', options: [opt('ambient', 'Si mescola alla musica (rispetta il silenzioso)'), opt('playback', 'Suona anche col silenzioso (può interrompere la musica)')], help: 'Con "si mescola" il bip si sente sopra la musica ma è muto se il telefono è in silenzioso. Puoi verificarlo con "Prova il suono" in fondo alle Impostazioni.' },
+      { path: 'timer.flash', type: 'toggle', label: 'Lampeggio dello schermo a fine recupero', help: 'Tutto lo schermo lampeggia del colore di successo: si vede anche con la coda dell\'occhio. Se sul telefono è attivo "Riduci movimento", diventa un solo cambio di colore morbido.' },
+      { path: 'timer.flashCount', type: 'number', label: 'Numero di lampeggi', min: 1, max: 10, step: 1, decimals: 0 },
+      { path: 'timer.flashMs', type: 'number', label: 'Durata di ogni lampeggio (ms)', min: 150, max: 2000, step: 50, decimals: 0 },
+      { path: 'timer.flashOpacity', type: 'number', label: 'Intensità del lampeggio', min: 0.2, max: 1, step: 0.05, decimals: 2, help: '1 = colore pieno.' },
       { path: 'timer.keepScreenOn', type: 'toggle', label: 'Schermo sempre acceso durante l\'allenamento', help: 'Consigliato: con lo schermo spento iOS sospende l\'app e il timer non può suonare.' },
     ],
   },
@@ -148,6 +152,15 @@ export const SETTINGS_SCHEMA = [
       { path: 'backup.periodicDays', type: 'number', label: 'Copia interna automatica ogni (giorni)', min: 0, max: 30, step: 1, decimals: 0, help: '0 = mai. Avviene da sola, senza tocchi, dentro l\'app.' },
       { path: 'backup.periodicKept', type: 'number', label: 'Copie interne periodiche conservate', min: 1, max: 10, step: 1, decimals: 0 },
       { path: 'backup.autoBackupsKept', type: 'number', label: 'Copie conservate prima delle importazioni', min: 1, max: 10, step: 1, decimals: 0 },
+    ],
+  },
+  {
+    id: 'notify', title: 'Notifiche di fine recupero',
+    items: [
+      { path: 'notify.local', type: 'toggle', label: 'Notifica a fine recupero (app aperta)', help: 'Serve il permesso: si attiva con "Attiva le notifiche" nel riquadro "Notifiche e vibrazione". Senza server funziona solo con l\'app aperta.' },
+      { path: 'notify.replaceEndSound', type: 'toggle', label: 'Con la notifica, niente bip finale dell\'app', help: 'Evita il doppio avviso: suona e vibra solo la notifica. Il preavviso e il 3-2-1 restano.' },
+      { path: 'notify.maxLateSec', type: 'number', label: 'Nessuna notifica se in ritardo di oltre (s)', min: 1, max: 60, step: 1, decimals: 0, help: 'Se torni nell\'app dopo la fine del recupero, la notifica non serve più.' },
+      { path: 'notify.testDelaySec', type: 'number', label: 'Ritardo della notifica di prova (s)', min: 3, max: 60, step: 1, decimals: 0 },
     ],
   },
   {

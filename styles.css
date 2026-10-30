@@ -778,6 +778,16 @@ textarea.input { resize: vertical; }
 }
 @keyframes splashIn { from { opacity: 0; transform: translateY(12px) scale(.96); } }
 
+.text-danger { color: var(--c-danger); }
+
+/* Lampeggio di fine recupero (animato da feedback.js) */
+.screen-flash {
+  position: fixed; inset: 0; z-index: 110;
+  background: var(--c-success);
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* Movimento ridotto */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }

@@ -12,6 +12,7 @@ import { setFieldStepper, readSetSteppers, editSetDialog } from '../editors.js';
 import * as io from '../../io.js';
 import { exerciseIcon } from '../pictograms.js';
 import * as fb from '../../feedback.js';
+import * as notify from '../../notify.js';
 import {
   formatClock, formatDate, formatDuration, formatVolume, formatNumber,
   kgToDisplay, displayToKg, mToDisplay, displayToM, weightUnit, distanceUnit,
@@ -89,9 +90,11 @@ export function render(root, ctx) {
       if (sec > from) lastCountdown = null;
     },
     onWarn: () => { fb.playSound('warn'); fb.haptic(1); },
-    onEnd: () => {
-      fb.playSound('end');
+    onEnd: (late) => {
+      const notified = notify.restEnded(restInfo(), late);
+      if (!(notified && get('notify.replaceEndSound'))) fb.playSound('end');
       fb.haptic(3);
+      fb.flashScreen();
       restPanel.classList.remove('warn');
       restPanel.classList.add('over');
       restLabel.textContent = t('restOver');
@@ -102,6 +105,19 @@ export function render(root, ctx) {
       restHideTimer = setTimeout(hideRest, get('timer.endBannerSec') * 1000);
     },
   }, () => get('timer.warnBeforeSec'));
+
+  /** Cosa c'è da fare dopo il recupero: esercizio corrente e numero della serie. */
+  function restInfo() {
+    let e = currentEntry();
+    // Esercizio corrente già finito (senza passaggio automatico): si indica il prossimo
+    if (!e || e.skipped || wk.isEntryComplete(e)) {
+      const next = wk.nextIncompleteIndex(session);
+      if (next < 0) return { allDone: true };
+      e = session.entries[next];
+    }
+    const ex = repo.getExercise(e.exerciseId);
+    return { exercise: ex ? ex.name : '', setNumber: e.sets.length + 1 };
+  }
 
   function showRest() {
     clearTimeout(restHideTimer);

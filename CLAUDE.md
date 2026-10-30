@@ -31,7 +31,8 @@ js/util.js, format.js     utilità; conversioni kg/lb, km/mi; date con i segnapo
 js/io.js                  backup JSON (prepare + share/download), validazione, unisci/sostituisci,
                           copie automatiche, CSV, promemoria di backup
 js/timer.js               timer di recupero basato su endAt (Date.now), non sui tick
-js/feedback.js            suoni (Web Audio), feedback tattile (trucco iOS 18), Wake Lock
+js/feedback.js            suoni (Web Audio), vibrazione (solo Android), lampeggio a fine recupero, Wake Lock
+js/notify.js              notifiche locali di fine recupero (permesso, prova, testo), senza server
 js/domain/model.js        costruttori dei record, MEASURES, expandTargets, restFor
 js/domain/repo.js         copia in memoria + salvataggio; uso degli esercizi
 js/domain/workout.js      scelta del giorno, avvio, precompilazione, serie, chiusura
@@ -81,5 +82,8 @@ js/ui/views/*.js          home, workout, programs (+ library, import),
 
 - **Vibrazione**: `navigator.vibrate` non esiste su iOS. Il trucco dello switch di iOS 18 è stato provato sull'iPhone dell'utente e **non funziona**: rimosso, insieme alla sua impostazione. `haptic()` usa `navigator.vibrate` solo dove c'è (Android).
 - **Schermo bloccato**: niente notifiche locali programmate. Il comportamento predefinito è tenere lo schermo acceso (Wake Lock). La notifica via server Cloudflare è un'opzione prevista per la tappa finale (`push.*` nella configurazione).
+- **Notifiche locali** (`js/notify.js`): esistono solo nell'app aperta dalla Home (in una scheda di Safari `Notification` non esiste). Il permesso si chiede con un tocco, senza `await` prima della richiesta. Partono solo mentre il JavaScript gira, quindi con l'app in primo piano. In background o a schermo bloccato serve la push dal server. Se il permesso viene rifiutato, per richiederlo di nuovo bisogna reinstallare l'icona, e reinstallarla cancella i dati.
+- **Vibrazione tramite notifica**: la notifica non può chiedere di vibrare. Vibra o no secondo le impostazioni dell'iPhone (Notifiche → app, Suoni e feedback aptico, Full immersion). Chrome headless non mostra le notifiche: nelle prove si controllano le chiamate a `showNotification`.
+- **Cloudflare dal solo pannello web**: i Durable Object nuovi richiedono una migrazione, che si fa solo con `wrangler`. Per la tappa C si usano Queues (con `delaySeconds`) + D1, che si creano dal pannello.
 - **Dati separati**: i dati di Safari e quelli dell'app installata sulla Home non sono condivisi.
 - **Nome sotto l'icona**: si fissa all'installazione e il manifest è statico.
