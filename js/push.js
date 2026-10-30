@@ -65,6 +65,20 @@ function remember(ok, error) {
   lastResult = { ok, at: Date.now(), error: error ? String(error.message || error) : null };
 }
 
+/**
+ * Indirizzo della guida alla preparazione del server. Su GitHub Pages porta alla
+ * pagina del repository, che GitHub mostra già impaginata; altrove al file accanto all'app.
+ */
+export function guideUrl() {
+  const custom = get('push.guideUrl').trim();
+  if (custom) return custom;
+  const path = get('push.guidePath').replace(/^\/+/, '');
+  const m = location.hostname.match(/^([^.]+)\.github\.io$/i);
+  const repo = location.pathname.split('/').filter(Boolean)[0];
+  if (m && repo && repo !== 'index.html') return `https://github.com/${m[1]}/${repo}/blob/${get('push.guideBranch')}/${path}`;
+  return './' + path;
+}
+
 // ---------- Chiave pubblica e iscrizione ----------
 
 export const savedPublicKey = () => db.getMeta(KEY_META, null);

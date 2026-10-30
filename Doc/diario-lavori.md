@@ -330,3 +330,11 @@ L'app è completa e pubblicabile. Resta solo la **tappa 6 facoltativa** (notific
   - **Progressi**: riepilogo (allenamenti, costanza, volume, tempo), metriche del grafico (1RM, Epley/Brzycki) e record personali.
 - **Grafica**: nelle griglie a due colonne i selettori si allineano in basso, così un'etichetta che va a capo per il "?" non li sposta.
 - **Prova**: tutti i "?" presenti e apribili nelle cinque schermate; nessun errore in console.
+
+## Versione 1.0.9 — Istruzioni del server dentro l'app
+
+- **Riquadro "Server di notifica"**:
+  - un "?" (`help_pushServer`) spiega a cosa serve, cosa dà in più rispetto alla sola app, i limiti (serve la rete, 1–3 s di ritardo), la privacy e i passi principali;
+  - un tasto "Apri le istruzioni complete", in evidenza finché il server non è configurato.
+- **Indirizzo della guida** (`push.guideUrl()`): su GitHub Pages si ricava dall'indirizzo dell'app (`utente.github.io/repo` → `github.com/utente/repo/blob/<guideBranch>/<guidePath>`), così GitHub la mostra impaginata e nel codice non c'è nessun nome. Altrove apre il file accanto all'app. Si può forzare con `push.guideUrl`.
+- **Prova**: link e aiuto (7 paragrafi) nel browser; nessun errore.

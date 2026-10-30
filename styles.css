@@ -782,6 +782,7 @@ textarea.input { resize: vertical; }
 @keyframes splashIn { from { opacity: 0; transform: translateY(12px) scale(.96); } }
 
 .text-danger { color: var(--c-danger); }
+a.btn { text-decoration: none; }
 
 /* Aiuto contestuale: piccolo "?" accanto alle voci */
 .help-tip {

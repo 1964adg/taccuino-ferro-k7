@@ -212,6 +212,11 @@ export const DEFAULTS = {
     cancelBeforeEndSec: 5,   // con l'app in primo piano e la notifica locale attiva, si annulla la push
                              // negli ultimi N secondi (evita il doppio avviso; 0 = mai)
     testDelaySec: 10,        // ritardo della prova dal server
+    // Guida alla preparazione del server. Se guideUrl è vuoto, l'indirizzo si ricava da
+    // quello dell'app su GitHub Pages (utente.github.io/repo → github.com/utente/repo).
+    guideUrl: '',
+    guideBranch: 'main',
+    guidePath: 'server/ISTRUZIONI.md',
   },
 
   // Testi dell'interfaccia. {n}, {name}, ecc. sono segnaposto.
@@ -559,7 +564,8 @@ export const DEFAULTS = {
     help_workoutMenu: 'Fatto: registra la serie con i valori mostrati, poi parte il recupero.\nAnnulla ultima: cancella l\'ultima serie registrata.\nTocca una serie già fatta per correggerla o eliminarla.\nRiscaldamento: segna la serie corrente come riscaldamento.\nNel menu "Altro": Serie extra aggiunge una serie in più; Salta esercizio lo mette da parte (puoi riprenderlo); Aggiungi esercizio inserisce un esercizio fuori scheda, anche nuovo; Vai all\'esercizio salta a un altro esercizio.\nCon le frecce in basso, o scorrendo di lato, passi all\'esercizio precedente o successivo.\nTermina (in alto) chiude l\'allenamento con il riepilogo.',
     help_summary: 'Allenamenti: quanti ne hai fatti nel periodo.\nCostanza: i giorni in cui ti sei allenato rispetto ai giorni di allenamento previsti fino a oggi (Impostazioni → Calendario), al massimo 100%.\nVolume totale: la somma di peso × ripetizioni di tutte le serie. Il riscaldamento è escluso (salvo impostazione); negli esercizi a corpo libero può contare il peso corporeo.\nTempo totale: la durata degli allenamenti.',
     help_metrics: 'Ogni punto del grafico è un allenamento.\nMassimale stimato (1RM): il peso che potresti sollevare per una sola ripetizione, calcolato da peso e ripetizioni della serie migliore (formula di Epley, o Brzycki in Impostazioni → Statistiche). Utile per confrontare serie con ripetizioni diverse.\nPeso massimo: il peso più alto usato.\nVolume: peso × ripetizioni di tutte le serie.\nRipetizioni massime e totali, tempo e distanza: a seconda del tipo di esercizio.',
-    help_records: 'I tuoi migliori risultati di sempre con questo esercizio, con la data.\nSe correggi o elimini un allenamento nella cronologia, i record vengono ricalcolati.',
+    help_pushServer: 'A cosa serve: avvisarti a fine recupero anche quando l\'app non è in primo piano.\nSenza server: con l\'app aperta e lo schermo acceso hai bip e notifica con vibrazione; con lo schermo bloccato o in un\'altra app non arriva niente.\nCon il server: anche a schermo bloccato o in un\'altra app arriva la notifica con vibrazione (1–3 secondi dopo il timer). Puoi bloccare il telefono tra una serie e l\'altra o cambiare musica senza perdere l\'avviso.\nServe la rete: senza segnale l\'avviso dal server non arriva, ma il timer dell\'app funziona comunque.\nPrivacy: al server arrivano solo l\'indirizzo per le notifiche del telefono e la durata del recupero, nessun dato di allenamento.\nCome si prepara (una volta sola, gratis, meglio dal computer, circa 20 minuti): 1) crea un account Cloudflare; 2) crea un Worker e incolla il codice di server/gaia-gym-push.js; 3) apri /genera-chiavi e copia le chiavi nelle variabili del Worker; 4) crea un database D1 e una coda (Queues) e collegali al Worker; 5) qui nell\'app attiva "Usa il server di notifica", inserisci indirizzo e chiave segreta, tocca "Collega questo telefono" e fai la prova a schermo bloccato.\nIl dettaglio, con i nomi dei pulsanti, è in "Apri le istruzioni complete".',
+    help_records:'I tuoi migliori risultati di sempre con questo esercizio, con la data.\nSe correggi o elimini un allenamento nella cronologia, i record vengono ricalcolati.',
 
     // App, aggiornamenti, accessibilità
     aboutApp: 'Informazioni',
@@ -613,6 +619,7 @@ export const DEFAULTS = {
     pushTestBody: 'Arrivata dal server: funziona anche a schermo bloccato.',
     pushTestErr: 'Prova non riuscita: {msg}',
     pushTimeout: 'il server non ha risposto in tempo',
+    pushGuide: 'Apri le istruzioni complete',
     pushLastOk: 'Ultimo invio al server riuscito alle {time}.',
     pushLastErr: 'Ultimo invio al server non riuscito alle {time} ({msg}). Il timer del telefono funziona comunque.',
     notifyPhoneSettings: 'Impostazioni dell\'iPhone per la vibrazione',

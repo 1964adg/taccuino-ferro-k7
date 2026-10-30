@@ -7,7 +7,7 @@ import * as db from '../../db.js';
 import { DEFAULTS } from '../../config-default.js';
 import { SETTINGS_SCHEMA } from '../../settings-schema.js';
 import { formatNumber, formatDate, formatTime } from '../../format.js';
-import { button, stepper, toggle, segmented, confirmDialog, toast, safe, openSheet } from '../components.js';
+import { button, stepper, toggle, segmented, confirmDialog, toast, safe, openSheet, helpTip } from '../components.js';
 import * as io from '../../io.js';
 import * as pwa from '../../pwa.js';
 import * as fb from '../../feedback.js';
@@ -139,8 +139,14 @@ function notifyCard(ctx) {
 
 function pushCard(ctx) {
   const card = h('section', { class: 'card stack' },
-    h('div', { class: 'card-title' }, t('pushSection')),
+    h('div', { class: 'card-title with-help' }, t('pushSection'), helpTip('pushServer', t('pushSection'))),
     h('p', { class: 'muted small' }, t('pushIntro')));
+  // La guida serve soprattutto finché il server non è pronto: tasto in evidenza in quel caso
+  const guideBtn = (primary) => h('a', {
+    class: `btn btn-${primary ? 'primary' : 'secondary'} btn-block`, href: push.guideUrl(), target: '_blank', rel: 'noopener',
+  }, icon('text'), h('span', null, t('pushGuide')));
+  if (!push.configured()) card.append(guideBtn(true));
+  else card.append(guideBtn(false));
   if (!push.supported() || notify.permission() === 'unsupported') {
     card.append(h('p', { class: 'small' }, notify.isStandalone() ? t('notifyStatusUnsupported') : t('notifyNeedsHome')));
     return card;

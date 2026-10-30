@@ -166,7 +166,7 @@ export const SETTINGS_SCHEMA = [
   {
     id: 'push', title: 'Notifiche a schermo spento (facoltativo)',
     items: [
-      { path: 'push.enabled', type: 'toggle', label: 'Usa il server di notifica', help: 'Serve un server Cloudflare tuo: istruzioni nel README, sezione "Notifiche a schermo bloccato". Al server arrivano solo l\'indirizzo push del telefono e la durata del recupero.' },
+      { path: 'push.enabled', type: 'toggle', label: 'Usa il server di notifica', help: 'Serve un server Cloudflare tuo: a cosa serve e come prepararlo nel riquadro "Server di notifica" (tasto ? e "Apri le istruzioni complete"). Al server arrivano solo l\'indirizzo push del telefono e la durata del recupero.' },
       { path: 'push.serverUrl', type: 'text', label: 'Indirizzo del server', help: 'Es. https://gaia-gym-push.nome.workers.dev' },
       { path: 'push.secret', type: 'text', label: 'Chiave segreta', help: 'La stessa messa nella variabile SEGRETO del server.' },
       { path: 'push.cancelBeforeEndSec', type: 'number', label: 'Con l\'app aperta, annulla la push negli ultimi (s)', min: 0, max: 30, step: 1, decimals: 0, help: 'Se l\'app è in primo piano e la notifica locale è attiva, a fine recupero avvisa già il telefono: la push del server (che arriva 1–3 s dopo) si annulla per non avere un doppio avviso. 0 = mai.' },
