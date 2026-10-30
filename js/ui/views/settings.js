@@ -58,9 +58,11 @@ export function render(root, ctx) {
   db.getMeta('persisted', false).then((p) => { storageNote.textContent = p ? t('storagePersisted') : t('storageNotPersisted'); });
 
   // Informazioni sull'app e aggiornamenti
+  const versionEl = h('p', { class: 'muted small' }, get('app.name'));
+  pwa.appVersion().then((v) => { versionEl.textContent = `${get('app.name')} · ${t('appVersion', { v: v || '—' })}`; });
   root.append(h('section', { class: 'card stack' },
     h('div', { class: 'card-title' }, t('aboutApp')),
-    h('p', { class: 'muted small' }, `${get('app.name')} · ${t('appVersion', { v: pwa.appVersion() })}`),
+    versionEl,
     h('p', { class: 'muted small' }, pwa.offlineReady() ? t('offlineReady') : t('offlineNotReady')),
     button(t('testSound'), { iconName: 'clock', className: 'btn-block', onClick: () => {
       // Il tocco stesso riattiva l'audio, poi si suona la fine del recupero
@@ -70,7 +72,8 @@ export function render(root, ctx) {
     } }),
     button(t('checkUpdates'), { iconName: 'reset', className: 'btn-block', onClick: async () => {
       const r = await pwa.checkForUpdate();
-      toast(r === 'latest' ? t('upToDate', { v: pwa.appVersion() }) : r === 'updating' ? t('updateChecking') : t('updateUnavailable'), { duration: 6000 });
+      const v = (await pwa.appVersion()) || '—';
+      toast(r === 'latest' ? t('upToDate', { v }) : r === 'updating' ? t('updateChecking') : t('updateUnavailable'), { duration: 6000 });
     } }),
   ));
 }

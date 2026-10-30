@@ -8,7 +8,20 @@ import { toast } from './ui/components.js';
 let registration = null;
 let reloading = false;
 
-export const appVersion = () => self.APP_VERSION || '?';
+/**
+ * Versione installata, chiesta al service worker (il numero sta in service-worker.js).
+ * Restituisce null se non è disponibile (es. prima installazione o sito senza HTTPS).
+ */
+export function appVersion() {
+  return new Promise((resolve) => {
+    const c = swSupported() && navigator.serviceWorker.controller;
+    if (!c) { resolve(null); return; }
+    const ch = new MessageChannel();
+    const timer = setTimeout(() => resolve(null), 1500);
+    ch.port1.onmessage = (e) => { clearTimeout(timer); resolve((e.data && e.data.version) || null); };
+    c.postMessage('getVersion', [ch.port2]);
+  });
+}
 export const swSupported = () => 'serviceWorker' in navigator;
 
 function offerUpdate(worker) {
@@ -37,8 +50,8 @@ export async function registerServiceWorker() {
   if (!window.isSecureContext) return null;
   try {
     // updateViaCache 'none': per controllare gli aggiornamenti il telefono scarica sempre
-    // service-worker.js e version.js dalla rete. Altrimenti GitHub Pages (che dice di
-    // tenere i file per 10 minuti) farebbe vedere ancora la versione vecchia.
+    // service-worker.js dalla rete, senza usare la memoria temporanea del browser
+    // (GitHub Pages dice di tenere i file per 10 minuti).
     registration = await navigator.serviceWorker.register('./service-worker.js', { scope: './', updateViaCache: 'none' });
   } catch (err) {
     console.warn('Service worker non registrato', err);

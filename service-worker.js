@@ -1,11 +1,15 @@
 // Service worker: rende l'app utilizzabile offline salvando i file sul telefono.
 // Strategia: prima la copia salvata (avvio istantaneo), poi la rete.
-// Per pubblicare una nuova versione: aumentare APP_VERSION in version.js
-// e, se si aggiungono o tolgono file, aggiornare l'elenco FILES qui sotto.
 
-importScripts('./version.js');
+// ===== VERSIONE DELL'APP: aumentarla a OGNI pubblicazione =====
+// Safari capisce che c'è un aggiornamento solo se QUESTO file cambia:
+// per questo il numero di versione sta qui e non in un file separato.
+const APP_VERSION = '1.0.4';
+// ===============================================================
+// Se si aggiungono o tolgono file dell'app, aggiornare anche l'elenco FILES qui sotto
+// (controllo: node tools/check-sw.mjs).
 
-const CACHE = 'gaia-gym-' + self.APP_VERSION;
+const CACHE = 'gaia-gym-' + APP_VERSION;
 
 // Tutti i file dell'app (percorsi relativi: il sito può stare in una sottocartella)
 const FILES = [
@@ -13,7 +17,6 @@ const FILES = [
   './index.html',
   './manifest.webmanifest',
   './styles.css',
-  './version.js',
   './icons/apple-touch-icon.png',
   './icons/favicon-32.png',
   './icons/icon-192.png',
@@ -74,7 +77,8 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('message', (event) => {
   if (event.data === 'skipWaiting') self.skipWaiting();
-  if (event.data === 'getVersion' && event.source) event.source.postMessage({ type: 'version', version: self.APP_VERSION });
+  // La pagina chiede la versione installata (risposta sul canale ricevuto)
+  if (event.data === 'getVersion' && event.ports && event.ports[0]) event.ports[0].postMessage({ version: APP_VERSION });
 });
 
 self.addEventListener('fetch', (event) => {

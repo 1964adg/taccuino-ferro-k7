@@ -19,8 +19,7 @@ Lingua: tutto in italiano (interfaccia, commenti, documentazione, risposte all'u
 
 ```
 index.html, styles.css
-version.js                versione dell'app (script classico, letto anche dal service worker)
-service-worker.js         cache dei file per l'uso offline
+service-worker.js         cache dei file per l'uso offline + APP_VERSION (unico punto della versione)
 manifest.webmanifest      installazione sulla Home
 js/main.js                avvio: db → config → repo → scheda di esempio → interfaccia → service worker
 js/pwa.js                 registrazione del service worker, avviso "Aggiorna", versione
@@ -64,7 +63,7 @@ js/ui/views/*.js          home, workout, programs (+ library, import),
 
 ## PWA e pubblicazione
 
-- **A ogni pubblicazione**: aumentare `self.APP_VERSION` in `version.js`. Senza questo i telefoni continuano a usare i file salvati.
+- **A ogni pubblicazione**: aumentare `APP_VERSION` in `service-worker.js`. Safari (iOS) rileva un aggiornamento **solo se cambia il file del service worker**, non i file importati con `importScripts`: per questo la versione sta lì (prima stava in `version.js` e l'iPhone non vedeva gli aggiornamenti). La pagina legge la versione chiedendola al service worker (`pwa.appVersion()`).
 - **File aggiunti o rimossi**: aggiornare l'elenco `FILES` in `service-worker.js` e verificare con `node tools/check-sw.mjs`.
 - **Aggiornamenti**: non si attivano mai da soli. Passano dall'avviso "Aggiorna" (`js/pwa.js`), per non interrompere un allenamento.
 - **Icone**: si modifica `icons/icon.svg`, poi si rigenerano i PNG con `node tools/render-icons.mjs <porta>` (server locale acceso).

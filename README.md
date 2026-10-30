@@ -45,7 +45,7 @@ Nome del repository proposto: **`taccuino-ferro-k7`** (poco ovvio da indovinare)
 ### 2. Caricare i file
 
 1. Nella pagina del repository appena creato, tocca il link **uploading an existing file**, oppure **Add file → Upload files**.
-2. Dal computer apri la cartella del progetto, seleziona **tutto il suo contenuto** (non la cartella stessa) e trascinalo nella pagina. Devono comparire `index.html`, `styles.css`, `version.js`, `service-worker.js`, `manifest.webmanifest`, `.nojekyll` e le cartelle `js` e `icons`.
+2. Dal computer apri la cartella del progetto, seleziona **tutto il suo contenuto** (non la cartella stessa) e trascinalo nella pagina. Devono comparire `index.html`, `styles.css`, `service-worker.js`, `manifest.webmanifest`, `.nojekyll` e le cartelle `js` e `icons`.
    - Le cartelle `Doc` e `tools` e i file `README.md` e `CLAUDE.md` non servono all'app: puoi caricarli (per tenere tutto insieme) oppure no.
    - Se `.nojekyll` non si vede, in Esplora file attiva Visualizza → Elementi nascosti.
 3. In basso premi **Commit changes**.
@@ -73,7 +73,7 @@ In tutti questi casi si recupera tutto importando l'ultimo backup.
 
 Passi per pubblicare:
 
-1. Apri `version.js` e aumenta il numero (per esempio da `1.0.0` a `1.0.1`). **Va fatto a ogni pubblicazione**: è così che i telefoni capiscono che c'è una versione nuova.
+1. Apri `service-worker.js` e, in cima, aumenta il numero in `const APP_VERSION = '…'` (per esempio da `1.0.4` a `1.0.5`). **Va fatto a ogni pubblicazione**: l'iPhone si accorge di una versione nuova solo se cambia questo file.
 2. Se hai aggiunto o tolto file dell'app, aggiorna l'elenco in `service-worker.js`. Per controllarlo: `node tools/check-sw.mjs`.
 3. Ricarica su GitHub i file cambiati (Add file → Upload files → Commit changes).
 4. Aspetta qualche minuto: GitHub impiega fino a una decina di minuti a distribuire i file nuovi.
@@ -146,8 +146,7 @@ iOS può cancellare i dati di un sito web che non viene usato per molto tempo. L
 ```
 index.html             pagina
 styles.css             stili (colori e misure da variabili CSS)
-version.js             numero di versione (da aumentare a ogni pubblicazione)
-service-worker.js      salvataggio dei file per l'uso offline
+service-worker.js      salvataggio dei file per l'uso offline e numero di versione (APP_VERSION)
 manifest.webmanifest   nome, icone e colori per l'installazione
 icons/                 icona (icon.svg è l'originale, i PNG sono generati)
 js/

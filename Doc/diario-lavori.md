@@ -227,3 +227,14 @@ L'app è completa e pubblicabile. Resta solo la **tappa 6 facoltativa** (notific
 - **Causa**: GitHub Pages invia `Cache-Control: max-age=600`. Con l'impostazione predefinita (`updateViaCache: 'imports'`), il browser prende `version.js` (importato dal service worker) dalla propria cache per un massimo di 10 minuti. `service-worker.js` non cambia, quindi nessun aggiornamento viene visto.
 - **Correzione**: registrazione con `updateViaCache: 'none'`. Ora il controllo scarica sempre `service-worker.js` e `version.js` dalla rete.
 - **Nota**: resta un possibile ritardo di pochi minuti dovuto alla rete di distribuzione di GitHub subito dopo la pubblicazione. Il messaggio "aggiornata" ora mostra la versione e suggerisce di riprovare.
+
+## Versione 1.0.4 — Aggiornamenti su iPhone (causa vera)
+
+- **Problema**: anche con la 1.0.3 online, sull'iPhone "Controlla aggiornamenti" rispondeva sempre "aggiornata".
+- **Causa**: Safari/WebKit decide se c'è un aggiornamento confrontando **solo il file `service-worker.js`**, non gli script importati con `importScripts`. La versione stava in `version.js`, quindi `service-worker.js` non cambiava mai. Chrome invece controlla anche gli import: per questo le prove sul PC funzionavano.
+- **Correzione**:
+  - `APP_VERSION` ora sta in cima a `service-worker.js` (unico punto); `version.js` eliminato;
+  - la pagina chiede la versione al service worker tramite `MessageChannel` (`pwa.appVersion()`);
+  - resta `updateViaCache: 'none'`.
+- **Passaggio**: sull'iPhone c'è ancora il service worker vecchio, ma dato che `service-worker.js` ora cambia, lo rileva e si aggiorna alla 1.0.4. Il file `version.js` rimasto nel repository GitHub è innocuo (non è più usato) e si può eliminare.
+- **Prova**: versione letta correttamente; cambiando solo `service-worker.js` (1.0.4 → 1.0.5) compare l'aggiornamento e dopo "Aggiorna" risulta 1.0.5 (numero poi rimesso a 1.0.4).
