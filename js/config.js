@@ -122,6 +122,8 @@ export function applyTheme() {
     '--c-warning': theme.warning,
     '--c-danger': theme.danger,
     '--c-on-accent': theme.onAccent,
+    '--c-splash-from': theme.splashFrom,
+    '--c-splash-to': theme.splashTo,
     '--c-bg': pal.bg,
     '--c-surface': pal.surface,
     '--c-surface-2': pal.surface2,

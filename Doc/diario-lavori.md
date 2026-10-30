@@ -190,3 +190,33 @@ L'app è completa e pubblicabile. Resta solo la **tappa 6 facoltativa** (notific
   - dati dell'app e copie interne: IndexedDB, privato dell'app, perso se si elimina l'icona;
   - backup esportati: file in iCloud Drive, che sopravvivono a tutto.
 - **README**: aggiunte le sezioni "I dati non si perdono con un aggiornamento" (con le cose che invece li cancellano) e "Backup automatici: cosa fa l'app da sola".
+
+## Pubblicazione e primo riscontro sull'iPhone (versione 1.0.1)
+
+- **Pubblicata** su https://1964adg.github.io/taccuino-ferro-k7/ (repository `1964adg/taccuino-ferro-k7`). Al primo caricamento mancavano le cartelle `js` e `icons`: il caricamento web di GitHub prende le cartelle solo se trascinate, non con "choose your files".
+- **Riscontri**:
+  - schermo sempre acceso: funziona;
+  - backup su iCloud: funziona;
+  - vibrazione: **non funziona**, quindi rimossa;
+  - suoni: richiesto un 3-2-1 finale.
+- **Fatto nella 1.0.1**:
+  - **Conto alla rovescia 3-2-1**: un bip per ognuno degli ultimi `timer.countdownFrom` secondi (3), con cifre arancioni che pulsano; il preavviso a 10 secondi e il suono finale restano.
+  - **Schermata di benvenuto**:
+    - è già dentro `index.html`, quindi compare all'istante;
+    - mostra icona, nome dell'app, "Ciao {nome}!" oppure "Buon allenamento!", e "by Papy" piccolo in basso a destra;
+    - nessun tasto: si chiude da sola dopo `welcome.durationMs` (1800 ms), oppure con un tocco;
+    - configurabile: attiva sì/no, durata, firma, colori della sfumatura;
+    - durante l'avvio si nasconde solo `.app`, non tutto il `body`, altrimenti la schermata di benvenuto sarebbe invisibile.
+- **Da decidere**: icone per gli esercizi (vedi proposta in chat).
+
+## Versione 1.0.2 — Audio insieme alla musica
+
+- **Problema segnalato**: avviando un lettore musicale, i bip non si sentivano più, nemmeno dopo aver spento la musica. Che il bip non interrompa la musica è invece voluto (modalità "ambient").
+- **Causa**: su iOS l'AudioContext passa allo stato `interrupted` quando un'altra app prende l'audio. Il codice riattivava solo lo stato `suspended`. Inoltre, dopo un'interruzione, Safari a volte segna il canale come attivo ma resta muto.
+- **Correzione** (`js/feedback.js`):
+  - si tiene traccia delle interruzioni (`onstatechange`);
+  - al tocco successivo l'AudioContext viene chiuso e ricreato, con un suono muto per riattivarlo dentro il gesto;
+  - `resume()` per ogni stato diverso da `running`, anche al ritorno nell'app;
+  - il tipo di sessione audio si riapplica a ogni ricreazione, quindi il cambio di modalità ha effetto subito.
+- **Limite residuo**: se la musica parte durante un recupero senza toccare l'app, il bip finale di quel recupero può andare perso; dal tocco successivo l'audio torna.
+- **Aggiunto**: tasto "Prova il suono" in Impostazioni → Informazioni.

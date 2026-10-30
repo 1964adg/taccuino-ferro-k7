@@ -78,7 +78,7 @@ js/ui/views/*.js          home, workout, programs (+ library, import),
 
 ## Limiti di iOS noti (non riaprire senza motivo)
 
-- **Vibrazione**: `navigator.vibrate` non esiste su iOS. Si usa solo il trucco dello switch di iOS 18, opzionale.
+- **Vibrazione**: `navigator.vibrate` non esiste su iOS. Il trucco dello switch di iOS 18 è stato provato sull'iPhone dell'utente e **non funziona**: rimosso, insieme alla sua impostazione. `haptic()` usa `navigator.vibrate` solo dove c'è (Android).
 - **Schermo bloccato**: niente notifiche locali programmate. Il comportamento predefinito è tenere lo schermo acceso (Wake Lock). La notifica via server Cloudflare è un'opzione prevista per la tappa finale (`push.*` nella configurazione).
 - **Dati separati**: i dati di Safari e quelli dell'app installata sulla Home non sono condivisi.
 - **Nome sotto l'icona**: si fissa all'installazione e il manifest è statico.

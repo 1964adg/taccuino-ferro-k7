@@ -50,6 +50,7 @@ export function render(root, ctx) {
   let steppers = {};
   let curWarmup = false;
   let restHideTimer = null;
+  let lastCountdown = null; // ultimo secondo del 3-2-1 già suonato
 
   // ---- Timer di recupero ----
   const restTime = h('div', { class: 'rest-time' });
@@ -69,9 +70,22 @@ export function render(root, ctx) {
 
   const timer = new RestTimer({
     onTick: (rem, total) => {
-      restTime.textContent = formatClock(Math.ceil(rem));
+      const sec = Math.ceil(rem);
+      restTime.textContent = formatClock(sec);
       restBar.style.transform = `scaleX(${total > 0 ? rem / total : 0})`;
       restPanel.classList.toggle('warn', rem <= get('timer.warnBeforeSec') && rem > 0);
+      // Conto alla rovescia sonoro negli ultimi secondi (3-2-1), una volta per secondo
+      const from = get('timer.countdownFrom');
+      const counting = from > 0 && sec >= 1 && sec <= from;
+      restPanel.classList.toggle('countdown', counting);
+      if (counting && sec !== lastCountdown) {
+        lastCountdown = sec;
+        fb.playSound('tick');
+        restTime.classList.remove('pulse');
+        void restTime.offsetWidth;
+        restTime.classList.add('pulse');
+      }
+      if (sec > from) lastCountdown = null;
     },
     onWarn: () => { fb.playSound('warn'); fb.haptic(1); },
     onEnd: () => {
@@ -101,6 +115,7 @@ export function render(root, ctx) {
     restPanel.hidden = true;
   }
   function startRest(sec) {
+    lastCountdown = null;
     const snap = timer.start(sec);
     showRest();
     safe(() => wk.setRest(session, snap));

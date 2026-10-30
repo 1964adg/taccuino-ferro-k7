@@ -25,10 +25,11 @@ body {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   overscroll-behavior: none;
-  transition: opacity .2s ease;
 }
+.app { transition: opacity .2s ease; }
 
-body.loading { opacity: 0; }
+/* Durante l'avvio si nasconde solo l'app, non la schermata di benvenuto */
+body.loading .app { opacity: 0; }
 
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
@@ -501,6 +502,9 @@ textarea.input { resize: vertical; }
 .rest.over .btn-secondary { background: rgb(255 255 255 / .2); color: var(--c-on-accent); }
 .rest.over .rest-bar { visibility: hidden; }
 .rest.over .rest-skip { background: var(--c-on-accent); color: var(--c-success); }
+.rest.countdown .rest-time { color: var(--c-warning); }
+.rest-time.pulse { animation: pulse .35s ease-out; }
+@keyframes pulse { 0% { transform: scale(1.18); } 100% { transform: scale(1); } }
 
 /* ---------- Schede e cronologia ---------- */
 
@@ -706,8 +710,33 @@ textarea.input { resize: vertical; }
 }
 .fatal { margin: 2rem; padding: 1rem; border-radius: 12px; background: #fde8e8; color: #8a1c1c; font-family: -apple-system, sans-serif; }
 
-/* Elemento nascosto per il feedback tattile di iOS 18 */
-.haptic-host { position: fixed; left: -9999px; top: 0; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; }
+/* ---------- Schermata di benvenuto ---------- */
+/* I colori di riserva valgono solo per l'istante prima che la configurazione sia letta. */
+
+.splash {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .9rem;
+  padding: env(safe-area-inset-top) var(--space, 16px) env(safe-area-inset-bottom);
+  background: linear-gradient(160deg, var(--c-splash-from, #8B7CF6), var(--c-splash-to, #5B47E0));
+  color: var(--c-on-accent, #fff);
+  text-align: center;
+  transition: opacity .45s ease, transform .45s ease;
+}
+.splash.hide { opacity: 0; transform: scale(1.04); pointer-events: none; }
+.splash-logo {
+  width: 108px; height: 108px; border-radius: 26px;
+  box-shadow: 0 18px 40px rgb(0 0 0 / .25);
+  animation: splashIn .6s cubic-bezier(.2, .8, .2, 1) both;
+}
+.splash-name { font-size: 2.2rem; font-weight: 800; letter-spacing: -.02em; animation: splashIn .6s .08s cubic-bezier(.2, .8, .2, 1) both; }
+.splash-hello { font-size: 1.1rem; opacity: .9; min-height: 1.4em; animation: splashIn .6s .16s cubic-bezier(.2, .8, .2, 1) both; }
+.splash-sign {
+  position: absolute;
+  right: calc(env(safe-area-inset-right) + 18px);
+  bottom: calc(env(safe-area-inset-bottom) + 14px);
+  font-size: .78rem; opacity: .75; font-style: italic; letter-spacing: .02em;
+}
+@keyframes splashIn { from { opacity: 0; transform: translateY(12px) scale(.96); } }
 
 /* Movimento ridotto */
 @media (prefers-reduced-motion: reduce) {

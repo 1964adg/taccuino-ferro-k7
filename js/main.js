@@ -1,7 +1,7 @@
 // Avvio dell'app: database, configurazione, dati, interfaccia.
 
 import * as db from './db.js';
-import { initConfig, t } from './config.js';
+import { initConfig, t, get } from './config.js';
 import * as repo from './domain/repo.js';
 import { mountApp } from './ui/app.js';
 import { unlockAudio } from './feedback.js';
@@ -25,6 +25,7 @@ function preventZoom() {
 }
 
 function showFatal(message) {
+  hideSplash();
   const root = document.getElementById('app');
   root.textContent = '';
   const box = document.createElement('div');
@@ -34,6 +35,40 @@ function showFatal(message) {
   document.body.classList.remove('loading');
 }
 
+// ---- Schermata di benvenuto ----
+
+const bootStart = Date.now();
+
+/** Testi della schermata di benvenuto presi dalla configurazione. */
+function fillSplash() {
+  const el = document.getElementById('splash');
+  if (!el) return;
+  if (!get('welcome.enabled')) { hideSplash(); return; }
+  const name = get('app.userName');
+  el.querySelector('.splash-name').textContent = get('app.name');
+  el.querySelector('.splash-hello').textContent = name ? t('welcomeHello', { name }) : t('welcomeHelloNoName');
+  el.querySelector('.splash-sign').textContent = t('welcomeSignature');
+  // Un tocco la chiude subito
+  el.addEventListener('pointerdown', () => hideSplash(), { once: true });
+}
+
+/** Chiude la schermata con una dissolvenza. */
+function hideSplash() {
+  const el = document.getElementById('splash');
+  if (!el || el.dataset.closing) return;
+  el.dataset.closing = '1';
+  el.classList.add('hide');
+  setTimeout(() => el.remove(), 500);
+}
+
+/** Dopo l'avvio: chiusura automatica alla fine della durata impostata. */
+function scheduleSplashClose() {
+  const el = document.getElementById('splash');
+  if (!el || el.dataset.closing) return;
+  const wait = Math.max(0, get('welcome.durationMs') - (Date.now() - bootStart));
+  setTimeout(() => hideSplash(), wait);
+}
+
 async function boot() {
   preventZoom();
   // Ogni tocco sblocca l'audio (requisito di iOS)
@@ -41,10 +76,12 @@ async function boot() {
   try {
     await db.init();
     await initConfig();
+    fillSplash();
     await repo.loadAll();
     await repo.seedSampleIfNeeded();
     mountApp(document.getElementById('app'));
     document.body.classList.remove('loading');
+    scheduleSplashClose();
     requestPersistence();
     registerServiceWorker();
     // Copia interna periodica, in sottofondo (non rallenta l'avvio)

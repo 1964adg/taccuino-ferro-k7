@@ -17,6 +17,8 @@ export const DEFAULTS = {
     warning: '#F59E0B',
     danger: '#E5484D',
     onAccent: '#FFFFFF',     // testo sopra i colori pieni (tasti, avvisi)
+    splashFrom: '#8B7CF6',   // sfumatura della schermata di benvenuto
+    splashTo: '#5B47E0',
     radius: 18,             // px
     spacing: 16,             // px, spaziatura base
     fontScale: 1,            // moltiplicatore della dimensione del testo
@@ -39,8 +41,13 @@ export const DEFAULTS = {
     },
   },
 
+  welcome: {
+    enabled: true,           // schermata di benvenuto all'apertura dell'app
+    durationMs: 1800,        // quanto resta visibile (un tocco la chiude prima)
+  },
+
   units: {
-    weight: 'kg',            // 'kg' | 'lb' (i dati sono sempre salvati in kg)
+    weight: 'kg',           // 'kg' | 'lb' (i dati sono sempre salvati in kg)
     weightStep: 2.5,         // passo nell'unità scelta
     repsStep: 1,
     timeStep: 5,             // secondi
@@ -55,8 +62,8 @@ export const DEFAULTS = {
     sound: true,
     soundVolume: 0.7,        // 0 – 1
     audioMode: 'ambient',    // 'ambient' (si mescola alla musica) | 'playback' (suona anche col silenzioso)
-    haptics: false,          // trucco sperimentale iOS 18
     warnBeforeSec: 10,       // 0 = nessun preavviso
+    countdownFrom: 3,        // bip a 3, 2, 1 secondi dalla fine (0 = niente conto alla rovescia)
     adjustStepSec: 15,
     restAfterLastSet: true,
     autoAdvance: true,
@@ -155,6 +162,9 @@ export const DEFAULTS = {
     tabSettings: 'Impostazioni',
 
     hello: 'Ciao',
+    welcomeHello: 'Ciao {name}!',
+    welcomeHelloNoName: 'Buon allenamento!',
+    welcomeSignature: 'by Papy',
     helloName: 'Ciao {name}',
     today: 'Oggi',
     scheduledToday: 'In programma oggi',
@@ -443,6 +453,9 @@ export const DEFAULTS = {
     offlineReady: 'Pronta per l\'uso offline.',
     offlineNotReady: 'Uso offline non attivo: serve la pubblicazione in HTTPS (es. GitHub Pages).',
     checkUpdates: 'Controlla aggiornamenti',
+    testSound: 'Prova il suono',
+    testSoundHint: 'Non senti nulla? Controlla il tasto silenzioso e il volume, o scegli "Suona anche col silenzioso" in Timer.',
+    testSoundOff: 'Il suono è disattivato in Impostazioni → Timer.',
     updateAvailable: 'Nuova versione disponibile.',
     updateNow: 'Aggiorna',
     updateChecking: 'Scaricamento della nuova versione…',

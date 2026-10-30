@@ -10,6 +10,7 @@ import { formatNumber, formatDate, formatTime } from '../../format.js';
 import { button, stepper, toggle, segmented, confirmDialog, toast, safe, openSheet } from '../components.js';
 import * as io from '../../io.js';
 import * as pwa from '../../pwa.js';
+import * as fb from '../../feedback.js';
 import { debounce } from '../../util.js';
 
 // Sezioni aperte (si ricordano finché l'app resta aperta)
@@ -61,6 +62,12 @@ export function render(root, ctx) {
     h('div', { class: 'card-title' }, t('aboutApp')),
     h('p', { class: 'muted small' }, `${get('app.name')} · ${t('appVersion', { v: pwa.appVersion() })}`),
     h('p', { class: 'muted small' }, pwa.offlineReady() ? t('offlineReady') : t('offlineNotReady')),
+    button(t('testSound'), { iconName: 'clock', className: 'btn-block', onClick: () => {
+      // Il tocco stesso riattiva l'audio, poi si suona la fine del recupero
+      fb.unlockAudio();
+      setTimeout(() => fb.playSound('end'), 60);
+      toast(get('timer.sound') ? t('testSoundHint') : t('testSoundOff'));
+    } }),
     button(t('checkUpdates'), { iconName: 'reset', className: 'btn-block', onClick: async () => {
       const r = await pwa.checkForUpdate();
       toast(r === 'latest' ? t('upToDate') : r === 'updating' ? t('updateChecking') : t('updateUnavailable'));
