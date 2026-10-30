@@ -70,7 +70,7 @@ export function render(root, ctx) {
     } }),
     button(t('checkUpdates'), { iconName: 'reset', className: 'btn-block', onClick: async () => {
       const r = await pwa.checkForUpdate();
-      toast(r === 'latest' ? t('upToDate') : r === 'updating' ? t('updateChecking') : t('updateUnavailable'));
+      toast(r === 'latest' ? t('upToDate', { v: pwa.appVersion() }) : r === 'updating' ? t('updateChecking') : t('updateUnavailable'), { duration: 6000 });
     } }),
   ));
 }

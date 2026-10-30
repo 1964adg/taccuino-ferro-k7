@@ -76,7 +76,8 @@ Passi per pubblicare:
 1. Apri `version.js` e aumenta il numero (per esempio da `1.0.0` a `1.0.1`). **Va fatto a ogni pubblicazione**: è così che i telefoni capiscono che c'è una versione nuova.
 2. Se hai aggiunto o tolto file dell'app, aggiorna l'elenco in `service-worker.js`. Per controllarlo: `node tools/check-sw.mjs`.
 3. Ricarica su GitHub i file cambiati (Add file → Upload files → Commit changes).
-4. Sull'iPhone, alla riapertura successiva dell'app compare **"Nuova versione disponibile"**. Tocca **Aggiorna**. L'aggiornamento non parte mai da solo, per non interrompere un allenamento. In Impostazioni → Informazioni c'è anche **Controlla aggiornamenti**.
+4. Aspetta qualche minuto: GitHub impiega fino a una decina di minuti a distribuire i file nuovi.
+5. Sull'iPhone, alla riapertura successiva dell'app compare **"Nuova versione disponibile"**. Tocca **Aggiorna**. L'aggiornamento non parte mai da solo, per non interrompere un allenamento. In Impostazioni → Informazioni c'è anche **Controlla aggiornamenti**.
 
 ### Privacy
 

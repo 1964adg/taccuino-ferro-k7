@@ -459,7 +459,7 @@ export const DEFAULTS = {
     updateAvailable: 'Nuova versione disponibile.',
     updateNow: 'Aggiorna',
     updateChecking: 'Scaricamento della nuova versione…',
-    upToDate: 'L\'app è aggiornata.',
+    upToDate: 'L\'app è aggiornata (versione {v}). Se hai appena pubblicato, riprova tra qualche minuto.',
     updateUnavailable: 'Controllo non disponibile in questo momento.',
     navMain: 'Navigazione principale',
     editByHand: 'modifica a mano',

@@ -36,7 +36,10 @@ export async function registerServiceWorker() {
   // Funziona solo in HTTPS (o su localhost): altrove si ignora in silenzio
   if (!window.isSecureContext) return null;
   try {
-    registration = await navigator.serviceWorker.register('./service-worker.js', { scope: './' });
+    // updateViaCache 'none': per controllare gli aggiornamenti il telefono scarica sempre
+    // service-worker.js e version.js dalla rete. Altrimenti GitHub Pages (che dice di
+    // tenere i file per 10 minuti) farebbe vedere ancora la versione vecchia.
+    registration = await navigator.serviceWorker.register('./service-worker.js', { scope: './', updateViaCache: 'none' });
   } catch (err) {
     console.warn('Service worker non registrato', err);
     return null;

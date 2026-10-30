@@ -220,3 +220,10 @@ L'app è completa e pubblicabile. Resta solo la **tappa 6 facoltativa** (notific
   - il tipo di sessione audio si riapplica a ogni ricreazione, quindi il cambio di modalità ha effetto subito.
 - **Limite residuo**: se la musica parte durante un recupero senza toccare l'app, il bip finale di quel recupero può andare perso; dal tocco successivo l'audio torna.
 - **Aggiunto**: tasto "Prova il suono" in Impostazioni → Informazioni.
+
+## Versione 1.0.3 — Aggiornamenti non rilevati
+
+- **Problema**: dopo la pubblicazione della 1.0.2, "Controlla aggiornamenti" rispondeva "aggiornata".
+- **Causa**: GitHub Pages invia `Cache-Control: max-age=600`. Con l'impostazione predefinita (`updateViaCache: 'imports'`), il browser prende `version.js` (importato dal service worker) dalla propria cache per un massimo di 10 minuti. `service-worker.js` non cambia, quindi nessun aggiornamento viene visto.
+- **Correzione**: registrazione con `updateViaCache: 'none'`. Ora il controllo scarica sempre `service-worker.js` e `version.js` dalla rete.
+- **Nota**: resta un possibile ritardo di pochi minuti dovuto alla rete di distribuzione di GitHub subito dopo la pubblicazione. Il messaggio "aggiornata" ora mostra la versione e suggerisce di riprovare.
