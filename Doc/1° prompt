@@ -1,0 +1,108 @@
+Prompt per Claude Code: app palestra "Gaia Gym" (PWA)
+Obiettivo
+
+Crea una PWA (Progressive Web App) chiamata "Gaia Gym" per tracciare gli allenamenti in palestra, da usare su iPhone (Safari, aggiunta alla schermata Home). Nessun backend, nessun account, nessun abbonamento: tutti i dati restano sul telefono, con esportazione e importazione di backup in file.
+
+L'utente finale è Gaia, che va in palestra più giorni a settimana, con schede diverse per giorno. La configurazione può essere ricca e anche complessa, perché si fa una volta sola. L'uso quotidiano deve invece essere velocissimo e semplice, controllabile con una sola mano (pollice), senza dover cercare, scrivere o fare passaggi inutili.
+
+Vincoli tecnici
+Vanilla HTML, CSS e JavaScript, senza framework e senza build step, in modo da poter pubblicare i file così come sono su GitHub Pages.
+Struttura a file separati: index.html, styles.css, app.js (o moduli ES separati se utile), manifest.webmanifest, service-worker.js, icone.
+Funzionamento completamente offline dopo la prima apertura (service worker con cache dei file).
+Persistenza dei dati con IndexedDB (preferita) oppure localStorage, con uno strato di accesso ai dati isolato in un unico modulo, così si può cambiare in futuro.
+Richiedi la persistenza dello storage (navigator.storage.persist) quando disponibile, per ridurre il rischio che iOS cancelli i dati.
+Compatibilità prioritaria: Safari su iPhone recente. Rispetta le safe area (notch e barra in basso), blocca lo zoom accidentale, usa dimensioni dei tasti generose (almeno 48 px di altezza).
+Tutto in italiano.
+Principio fondamentale: niente valori hardcodati
+
+Non voglio valori scritti nel codice. Tutto ciò che può essere un parametro deve essere una variabile di configurazione modificabile dall'utente dalla schermata Impostazioni, con un valore predefinito (preset) già pronto, così l'app parte subito anche se l'utente non tocca nulla.
+
+Realizza questo con:
+
+Un unico file o oggetto di configurazione predefinita (per esempio config-default.js) che contiene tutti i preset: impostazioni, tema, unità, passi, timer, testi delle etichette, scheda di esempio.
+Un livello di configurazione utente salvato nei dati, che sovrascrive i preset. Se una variabile manca o è vuota, si usa il preset: l'app non deve mai rompersi per un campo non compilato.
+Un pulsante "Ripristina predefiniti" per singola impostazione e globale.
+Nel CSS, usa variabili CSS (custom properties) per colori, raggi, spaziature, dimensioni dei font e dimensione minima dei tasti, valorizzate dalla configurazione.
+
+Elenco indicativo delle variabili configurabili (aggiungine altre se ti sembra sensato, preferisco averne di più che di meno):
+
+Nome dell'app (predefinito "Gaia Gym", mostrato nell'intestazione, nel titolo della pagina e sotto l'icona sulla Home) e nome dell'utente; tema: chiaro, scuro, automatico (segue il sistema); colore principale, colore secondario, colore di successo, raggio degli angoli, dimensione del testo, dimensione minima dei tasti.
+Unità di peso (kg o lb) e passo di incremento del peso (per esempio 0,5, 1, 1,5, 2, 2,5, o un valore libero).
+Passo di incremento delle ripetizioni.
+Tempo di recupero predefinito tra le serie, modificabile anche per singolo esercizio.
+Timer di recupero: avvio automatico sì o no, suono sì o no, vibrazione sì o no, notifica sì o no.
+Numero di serie predefinito e ripetizioni predefinite per un nuovo esercizio.
+Formato data e primo giorno della settimana.
+Quante sessioni passate mostrare nei grafici e nella cronologia.
+Precompilazione dei pesi: dall'ultima sessione, dal massimo, oppure dal valore previsto in scheda.
+Comportamento del tasto di conferma serie (un tocco = serie completata con i valori precompilati).
+Nomi delle etichette dell'interfaccia principali (per esempio "Serie", "Ripetizioni", "Recupero"), così si possono rinominare.
+Giorni della settimana abilitati per l'allenamento.
+Modello dati
+
+Pensa il modello dati in modo flessibile ed estendibile:
+
+Scheda (programma): nome, note, attiva sì o no, lista di giorni di allenamento.
+Giorno di allenamento: nome libero (per esempio "Giorno A", "Spinte", "Gambe"), giorni della settimana associati (opzionale), ordine, lista di esercizi in ordine modificabile.
+Esercizio: nome libero e rinominabile a piacere dall'utente (per esempio "Panca piana" può diventare "La mia panca"), gruppo muscolare (opzionale), serie previste, ripetizioni previste (valore singolo oppure intervallo), peso previsto, tempo di recupero, note, tipo di misurazione (peso e ripetizioni, solo ripetizioni, tempo, ecc.).
+Sessione (allenamento svolto): data e ora, giorno di allenamento di riferimento, durata, note, lista di serie eseguite.
+Serie eseguita: esercizio, numero della serie, peso, ripetizioni, completata sì o no, nota opzionale.
+Impostazioni: tutte le variabili di configurazione di cui sopra.
+
+Ogni record ha un identificativo stabile, una data di creazione e una di modifica. Includi un campo di versione dello schema dati e una piccola logica di migrazione, per poter evolvere l'app senza perdere i dati.
+
+Schermate e flusso
+1. Home (uso quotidiano, ottimizzata per una mano)
+Mostra subito l'allenamento di oggi: se per il giorno della settimana corrente c'è un giorno di allenamento associato, proponilo già selezionato; altrimenti proponi il prossimo in rotazione. Un grande tasto "Inizia allenamento" nella parte bassa dello schermo, raggiungibile col pollice.
+Possibilità di scegliere un altro giorno di allenamento con un solo tocco.
+Mostra l'ultima sessione fatta e un riepilogo minimo.
+2. Allenamento in corso
+Un esercizio alla volta a tutto schermo, con navigazione precedente e successivo tramite grandi tasti in basso e anche con scorrimento laterale.
+Per ogni serie: peso e ripetizioni già precompilati (secondo la regola scelta nelle impostazioni), con tasti più e meno grandi per cambiare il valore col passo configurato, e un unico grande tasto "Fatto" che registra la serie.
+Dopo "Fatto" parte in automatico il timer di recupero (se abilitato), ben visibile, con possibilità di aggiungere o togliere secondi e di saltarlo. Il timer deve continuare a essere corretto anche se lo schermo si spegne o l'app va in background (calcola il tempo dalla data di inizio, non contando i tick).
+Possibilità di correggere o annullare l'ultima serie con un tocco.
+Possibilità di aggiungere una serie extra, saltare un esercizio, o aggiungere al volo un esercizio fuori scheda.
+Mostra, in piccolo, il dato dell'ultima volta per lo stesso esercizio e un indicatore se si è migliorato (nuovo record).
+Impedisci lo spegnimento dello schermo durante l'allenamento (Wake Lock API, se disponibile).
+Tasto "Termina allenamento" con riepilogo (durata, volume totale, record battuti) e conferma del salvataggio. L'allenamento in corso deve essere salvato continuamente, in modo che chiudendo l'app per sbaglio non si perda nulla e si possa riprendere.
+3. Schede e programmazione (configurazione, può essere articolata)
+Creare, duplicare, rinominare, riordinare, archiviare ed eliminare schede, giorni ed esercizi.
+Riordinamento tramite trascinamento oppure frecce su e giù (le frecce devono funzionare bene anche su mobile).
+Libreria di esercizi personale: l'utente può rinominare qualunque esercizio; il rinomino si riflette sullo storico (lo storico fa riferimento all'identificativo, non al nome).
+Una scheda di esempio precaricata (per esempio un programma a tre giorni, con esercizi comuni per gambe, spinte e tirate), completamente modificabile ed eliminabile.
+Importazione veloce di una scheda da testo semplice, se riesci a farla in modo robusto (facoltativo, ma gradito).
+4. Cronologia e progressi
+Elenco delle sessioni per data, con dettaglio modificabile (correggere pesi, ripetizioni, date e note).
+Per ogni esercizio, un grafico dell'andamento nel tempo (peso massimo, volume, ripetizioni stimate, a scelta), disegnato con canvas o SVG scritto a mano, senza librerie esterne pesanti.
+Record personali per esercizio.
+Riepilogo settimanale e mensile: numero di allenamenti, volume totale, costanza.
+Filtri per esercizio, per giorno di allenamento e per periodo.
+5. Impostazioni
+Tutte le variabili di configurazione elencate sopra, raggruppate per sezione, con spiegazione breve e valore predefinito visibile.
+Esportazione completa dei dati in un file JSON (con data nel nome del file), tramite condivisione di sistema (Web Share API con file, se disponibile) oppure download. Su iPhone, deve essere facile salvarlo su File o iCloud Drive.
+Importazione da file JSON, con scelta tra "sostituisci tutto" e "unisci", validazione del file e messaggio chiaro in caso di errore, e un backup automatico dello stato precedente prima di sovrascrivere.
+Esportazione facoltativa della cronologia in CSV.
+Promemoria di backup: se sono passati più di N giorni dall'ultima esportazione (N configurabile), mostra un avviso discreto nella Home.
+Pulsante per cancellare tutti i dati, con doppia conferma.
+Requisiti di usabilità
+Navigazione con barra di tab in basso (Home, Allenamento, Schede, Progressi, Impostazioni), raggiungibile col pollice.
+Nessuna digitazione durante l'allenamento: solo tasti, incrementi e conferme. Dove serve inserire un numero, usa un selettore a tasti più e meno e, in alternativa, un campo numerico con tastiera adatta.
+Feedback immediato: vibrazione leggera alla conferma (se disponibile), animazioni sobrie, stati chiari.
+Accessibilità: contrasto adeguato, dimensioni scalabili, etichette corrette sui controlli.
+Aspetto curato e moderno: deve essere molto bello. Usa un design pulito, con buona gerarchia visiva, tipografia di sistema, angoli arrotondati, ombre leggere, transizioni fluide. Tema chiaro e scuro entrambi curati.
+Prestazioni: avvio istantaneo, nessuna dipendenza esterna da CDN (tutto locale, per funzionare offline).
+Qualità del codice
+Codice organizzato in moduli con responsabilità chiare: configurazione, accesso ai dati, logica di dominio, interfaccia, timer, esportazione e importazione.
+Commenti in italiano dove la logica non è ovvia.
+Nessuna costante magica sparsa nel codice: qualunque numero o testo che l'utente potrebbe voler cambiare passa dalla configurazione.
+Gestione degli errori esplicita (storage pieno, file di importazione non valido, API non disponibili) con messaggi comprensibili.
+Aggiungi un README breve in italiano con: come provare l'app in locale, come pubblicarla su GitHub Pages, come installarla su iPhone (Safari, tasto Condividi, "Aggiungi alla schermata Home"), come fare e ripristinare un backup, e l'avviso che iOS può cancellare i dati di un sito non usato per molto tempo, quindi conviene esportare un backup ogni tanto su iCloud Drive.
+Come voglio che lavori
+Prima di scrivere codice, leggi questo prompt per intero e dimmi se ci sono ambiguità o punti non fattibili su Safari iOS: segnalameli subito, non scegliere a caso. Se manca un dettaglio, chiedimelo invece di inventarlo.
+Proponi una breve architettura (file, moduli, modello dati) e aspetta la mia conferma.
+Procedi per tappe: prima il nucleo (configurazione, dati, scheda di esempio, schermata di allenamento con timer), poi schede e programmazione, poi cronologia e grafici, poi esportazione e importazione, infine rifinitura grafica e PWA offline.
+A ogni tappa dimmi cosa posso provare e come.
+Dove una scelta è soggettiva (colori, layout), proponi un valore predefinito sensato e rendilo configurabile, senza chiedermi conferma su ogni dettaglio.
+Pubblicazione
+
+L'app sarà pubblicata con GitHub Pages (piano gratuito), da un repository GitHub di mia proprietà. Non usare Cloudflare o altri servizi con accesso. Il nome del repository deve essere poco ovvio (non "gaia-gym"), così l'indirizzo non è facile da indovinare: proponimi tu un nome. Tutti i percorsi nell'app (service worker, manifest, icone, scope) devono funzionare anche quando il sito è servito da una sottocartella, tipo nomeutente.github.io/nome-repository/, quindi usa percorsi relativi e niente percorsi assoluti che partono dalla radice. Nel README spiega passo per passo come creare il repository, caricare i file, attivare Pages dalle impostazioni e ottenere l'indirizzo. Dato che il sito risulterà raggiungibile da chiunque abbia il link, nel codice e negli esempi non inserire nessun dato personale: la scheda di esempio deve essere generica.
